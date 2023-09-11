@@ -27,4 +27,6 @@ automatic tests are available: in folder outlierdetection, run
 pytest tests/
 pytest tests/ --cov=outlierdetection --cov-report term-missing
 
-Some notebooks testing the package are in the folder development_notebooks
+
+Comments:
+- There is currently a bug (September 11) with sphinx 7.2.5, loading numpy.typing.ufunc. Downgrade to 7.2.4 fixes it. 
