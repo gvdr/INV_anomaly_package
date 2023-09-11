@@ -1,3 +1,10 @@
+
+"""
+univariate.py
+====================================
+Contains the definition of the UnivariateOutlierDetection class. 
+"""
+
 # general
 import numpy as np 
 import pandas as pd 
@@ -8,6 +15,9 @@ import warnings
 warnings.filterwarnings(action='ignore',category=FutureWarning)
 
 def process_last_point(ts,ts_dates):
+    """
+    Simplest one-line call, takes time series values and dates as lists.
+    """
     ts_dates = pd.to_datetime(ts_dates)
     ts_panda = pd.Series(index = ts_dates, data = ts)
     OD = UnivariateOutlierDetection(ts_panda)
@@ -19,6 +29,9 @@ def process_last_point(ts,ts_dates):
 
 
 class UnivariateOutlierDetection:
+    """
+    Univariate outlier detection class. 
+    """
 
     # imported outlier detection methods
     from .univariate_STD import STD
@@ -30,6 +43,18 @@ class UnivariateOutlierDetection:
 
     # series has to have an index in pandas datetime format
     def __init__(self, series):
+        """
+        Initializes a univariate outlier detector with a time series. 
+
+        Parameters
+        ----------
+        series : pd.Series
+            Pandas Series containing the time series. 
+            Index has to be a pd.DatetimeIndex. 
+            Values are float and may be np.nan. 
+            Duplicate indices are removed, first are kept. 
+        """
+
         if not isinstance(series, pd.Series):
             raise TypeError("Passed series is not a pd.Series.")
         if not isinstance(series.index, pd.DatetimeIndex):
@@ -58,6 +83,14 @@ class UnivariateOutlierDetection:
 
 
     def GetSeries(self):
+        """
+        Returns the stored time series. 
+
+        Returns
+        -------
+        self.series : stored time series
+            pd.Series stored. 
+        """
         return self.series
     
     def AddDetector(self, new_detector):
@@ -112,9 +145,6 @@ class UnivariateOutlierDetection:
         for detector in self.detectors:
 
             # response structure for each detector: [value, algorithm_name, algorithm_parameters, isOutlier]
-
- 
-
 
             current_response = []
 
@@ -184,16 +214,16 @@ class UnivariateOutlierDetection:
             current_response.append(type)
             current_response.append([args, preprocessor, threshold])
             current_response.append(isOutlierCurrent)
-# The structure of result.responses should be as follows:
-# [
-#   {
-#     "Value": 0.1, # numeric score from the 
-#     "Algorithm": "Prophet",
-#     "Detail": {
-#       "type": "15"
-#     },
-#     "Anomaly": true
-#   },   
+            # The structure of result.responses should be as follows:
+            # [
+            #   {
+            #     "Value": 0.1, # numeric score from the 
+            #     "Algorithm": "Prophet",
+            #     "Detail": {
+            #       "type": "15"
+            #     },
+            #     "Anomaly": true
+            #   },   
 
             detail_dic = {"Arguments": args, "Preprocesor": preprocessor, "Threshold": threshold}
 
@@ -299,34 +329,16 @@ class UnivariateOutlierDetection:
                 if preprocessor:
                     perform_detection_after_preprocessing = True
                     processed_series = self.series.copy()
-                    #name += "["
                     skip = 0 # we skip this many from the beginning of the series in the training data to avoid boundary effects
                     for p in preprocessor:
-                        #print("Preprocessing:")
-                        #print(p)
                         pp_type = p[0]
                         pp_args = p[1]
-                        #print(pp_args)
-                        #name += p[0] + ' '.join(str(e) for e in p[1])
-
                         pp_func = getattr(self, 'pp_' + pp_type)
-
-                        #pp_args = 10
-
-                        #print(pp_func)
-
                         processed_series, critical_error, add_skip = pp_func(processed_series, pp_args)
 
                         skip += add_skip
                         if critical_error:
                             perform_detection_after_preprocessing = False
-
-                    #name += "]"
-
-
-                    # other name instead
-                    #print(detector[5])
-                    #name = "D_" + str(detector_tuple[5]) # 
 
                     if len(training) - len(nan_times) - skip < self.min_training_data:
                         warnings.warn(f"Warning: Non NaN training data less than {self.min_training_data}. No testing performed. Output will be NaN only!\n")
@@ -358,7 +370,6 @@ class UnivariateOutlierDetection:
                 time_diff_ns = key
 
 
-       
         time_diff_min = time_diff_ns / 1000 / 1000 / 1000 / 60
 
         time_diff_hours = time_diff_min / 60
@@ -424,9 +435,6 @@ class UnivariateOutlierDetection:
             if num_data >= periods_necessary_for_average * min_per_year / time_diff_min:
                 #average_length.append(int(min_per_year / time_diff_min))
                 season = int(min_per_year / time_diff_min)
-            
-
-        
             
 
         # decompose strategy from subday to dayly

@@ -1,3 +1,10 @@
+
+"""
+univariate_preprocessors.py
+====================================
+Contains the definition of preprocessors that can be applied to the time series data. 
+"""
+
 import pandas as pd
 import numpy as np
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -75,13 +82,7 @@ def pp_season_subtract(self, processed_series, args):
     critical_error = False       
     add_skip = 0         
     try:
-        #period_in_minutes = int(args[0])
         period = int(args[0])
-        #freq = pd.infer_freq(processed_series.index)
-        #if freq == None:
-        #    critical_error = True
-        #    raise Exception("Frequency could not be determined.")            
-        #period = int(period_in_minutes / int(freq[:-1]))
         seasonal_result = seasonal_decompose(processed_series, period=period)
         processed_series -= seasonal_result.seasonal 
     except Exception as e:

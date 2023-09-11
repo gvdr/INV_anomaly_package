@@ -14,8 +14,6 @@ def PRE(self, processed_series, training, test, args = [1]):
     if high == np.nan or low == np.nan:
         return np.nan
     
-    #print(processed_series.loc[training])
-
     if high == low:
         result = np.repeat(0.0, len(test))
         for i in range(len(test)):
@@ -26,8 +24,6 @@ def PRE(self, processed_series, training, test, args = [1]):
         return result
 
     diff = high - low
-
-    #bin_edges = [low + x * diff / n_bins for x in range(n_bins+1)]
 
     h = np.histogram(processed_series.loc[training].dropna(), bins = n_bins, density=True)
     
