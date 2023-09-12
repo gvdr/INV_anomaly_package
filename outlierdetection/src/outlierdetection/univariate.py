@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd 
 import json
 
+from statsmodels.tsa.seasonal import MSTL
+
+
 
 import warnings
 warnings.filterwarnings(action='ignore',category=FutureWarning)
@@ -38,7 +41,7 @@ class UnivariateOutlierDetection:
     from .univariate_IF import IF
     from .univariate_PRO import PRO
     from .univariate_PRE import PRE
-    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract
+    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid
     
 
     # series has to have an index in pandas datetime format
@@ -70,6 +73,9 @@ class UnivariateOutlierDetection:
             
         self.series = series  
 
+        self.trend = None
+        self.resid = None
+
         self.min_training_data = 5
 
         nans = series.isna() 
@@ -79,6 +85,24 @@ class UnivariateOutlierDetection:
             warnings.warn(f"Warning: passed series contains {len(nan_times)} nans:\n{nan_times}\n")
 
         self.SetStandardDetectors()
+
+
+    def CalculateMSTL(self, periods = [7, 365]):
+
+        nans = np.where(self.series.isnull())
+
+        imputed_series, _, _ = self.pp_fillna_linear(self.series)
+        
+        res = MSTL(imputed_series, periods=(365), lmbda=0).fit()
+
+        self.trend = res.trend
+        self.resid = res.resid
+
+        if nans:
+            self.trend.iloc[nans] = np.nan
+            self.resid.iloc[nans] = np.nan
+
+
 
 
 
@@ -93,6 +117,17 @@ class UnivariateOutlierDetection:
         """
         return self.series
     
+
+    def GetTrend(self):
+        return self.trend
+    
+    def GetResid(self):
+        return self.resid
+    
+    def GetResidPlusTrend(self):
+        return self.resid + self.trend
+    
+
     def AddDetector(self, new_detector):
         self.num_detectors += 1
         new_detector.append(new_detector[0]) # store the name before turning into a function
@@ -435,6 +470,9 @@ class UnivariateOutlierDetection:
             if num_data >= periods_necessary_for_average * min_per_year / time_diff_min:
                 #average_length.append(int(min_per_year / time_diff_min))
                 season = int(min_per_year / time_diff_min)
+                #self.AddDetector(['STD', [1], [['get_trend_plus_resid', []]], sigma_STD])
+                #self.AddDetector(['PRE', [10], [['get_trend_plus_resid', []]], 1.0 + deviation_PRE])
+
             
 
         # decompose strategy from subday to dayly
@@ -456,9 +494,11 @@ class UnivariateOutlierDetection:
             self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
 
         if not season == None:
-            self.AddDetector(['STD', [1], [['season_subtract', [season]]], sigma_STD])
-            self.AddDetector(['PRE', [10], [['season_subtract', [season]]], 1.0 + deviation_PRE])
+            self.AddDetector(['STD', [1], [['season_subtract', [season, 'multiplicative']]], sigma_STD])
+            self.AddDetector(['PRE', [10], [['season_subtract', [season, 'multiplicative']]], 1.0 + deviation_PRE])
 
+        if season == 365:
+            self.AddDetector(['STD', [1], [['season_subtract', [7, 'multiplicative']], ['season_subtract', [365, 'multiplicative']]], sigma_STD])
 
     def PrintDetectors(self):
         for d in self.detectors:
