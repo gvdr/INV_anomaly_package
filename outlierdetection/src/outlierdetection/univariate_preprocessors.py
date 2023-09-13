@@ -155,3 +155,24 @@ def pp_get_trend_plus_resid(self, processed_series, args=[]):
         print("An exception occurred during pp_get_trend_plus_resid:" + str(e))
         critical_error = True
     return self.trend + self.resid, critical_error, add_skip
+
+
+def pp_skip_from_beginning(self, processed_series, args=[0]):
+    critical_error = False       
+    try:
+        add_skip = args[0] 
+    except Exception as e:
+        print("An exception occurred during pp_skip_from_beginning:" + str(e))
+        critical_error = True
+    return processed_series, critical_error, add_skip
+
+def pp_restrict_data_to(self, processed_series, args=[]):
+    critical_error = False       
+    try:
+        training_length = args[0] 
+        test_length = args[1]
+        add_skip = len(self.series) - training_length - test_length
+    except Exception as e:
+        print("An exception occurred during pp_restrict_data_to:" + str(e))
+        critical_error = True
+    return processed_series, critical_error, add_skip

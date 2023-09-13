@@ -41,7 +41,7 @@ class UnivariateOutlierDetection:
     from .univariate_IF import IF
     from .univariate_PRO import PRO
     from .univariate_PRE import PRE
-    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid
+    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to
     
 
     # series has to have an index in pandas datetime format
@@ -87,6 +87,7 @@ class UnivariateOutlierDetection:
         self.SetStandardDetectors()
 
 
+    # Generally has poor performance as compared to manual season_subtract
     def CalculateMSTL(self, periods = [7, 365]):
 
         nans = np.where(self.series.isnull())
@@ -391,7 +392,7 @@ class UnivariateOutlierDetection:
         return result
 
 
-    def AutomaticallySelectDetectors(self, sigma_STD = 5, deviation_PRE = 0.05, periods_necessary_for_average = 3):
+    def AutomaticallySelectDetectors(self, sigma_STD = 4, deviation_PRE = 0.05, periods_necessary_for_average = 3, detector_window_length = 1):
         self.ClearDetectors()
         # find most often occurring time difference in nanoseconds and store in time_diff_ns
         time_differences_ns = np.diff(self.series.index).astype(int)
@@ -499,6 +500,9 @@ class UnivariateOutlierDetection:
 
         if season == 365:
             self.AddDetector(['STD', [1], [['season_subtract', [7, 'multiplicative']], ['season_subtract', [365, 'multiplicative']]], sigma_STD])
+            self.AddDetector(['STD', [1], [['season_subtract', [7, 'multiplicative']], ['season_subtract', [365, 'multiplicative']], ['skip_from_beginning', [len(self.series) - 365]]], sigma_STD])
+            self.AddDetector(['STD', [1], [['restrict_data_to', [365, detector_window_length]]], sigma_STD])
+
 
     def PrintDetectors(self):
         for d in self.detectors:
