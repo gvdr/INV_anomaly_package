@@ -59,6 +59,8 @@ def test_seasonal_outlier():
 
     df = df.loc[:pd.to_datetime('2014-04-11 09:00:00'), :] # this value is a clear seasonal anomaly that is not a value outlier
 
+    print(df.tail())
+
 
     ts = df.loc[:, 'value'].to_list()
     ts_dates = df.index.to_list()

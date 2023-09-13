@@ -45,7 +45,7 @@ def test_clear_peak():
     past, future = MakePastFuture(pd.to_datetime(df_bare.index[0]), length_past, length_future)
 
     OD = UOD.UnivariateOutlierDetection(ts_panda)
-    OD.AutomaticallySelectDetectors()
+    OD.AutomaticallySelectDetectors(detector_window_length = length_future)
     print(OD.GetDetectorNames())
     assert isinstance(OD.GetSeries(), pd.Series)
 

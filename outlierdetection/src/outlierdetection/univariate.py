@@ -24,7 +24,7 @@ def process_last_point(ts,ts_dates):
     ts_dates = pd.to_datetime(ts_dates)
     ts_panda = pd.Series(index = ts_dates, data = ts)
     OD = UnivariateOutlierDetection(ts_panda)
-    OD.AutomaticallySelectDetectors()
+    OD.AutomaticallySelectDetectors(detector_window_length=1)
     last_point_scores = OD.LastOutlierScore().iloc[0,:]
     result = OD.InterpretPointScore(last_point_scores)
     return result
@@ -433,6 +433,14 @@ class UnivariateOutlierDetection:
 
     def IsSeasonalitySignificant(self, period, average_period, threshold_R2 = 0.1, type = 'multiplicative'):
 
+        R2 = self.SeasonalityR2(period = period, average_period = average_period, type = type)
+
+        return np.mean(R2) >= threshold_R2
+
+
+    def SeasonalityR2(self, period, average_period, type = 'multiplicative'):
+
+        nans=[]
         if self.series.isnull().values.any():
             nans = np.where(self.series.isnull())
 
@@ -449,7 +457,7 @@ class UnivariateOutlierDetection:
 
         #print(f"Seasonality R2 improvement: {np.mean(R2.dropna())}")
 
-        return np.mean(R2.dropna()) >= threshold_R2                        
+        return np.mean(R2.dropna())                        
 
         
 
@@ -519,15 +527,16 @@ class UnivariateOutlierDetection:
                 #average_length.append(int(min_per_month / time_diff_min))
                 season = int(min_per_month / time_diff_min)
 
+        # INVTEREST type daily data
         if time_diff_min == 24 * 60:
             # average over week
             if num_data >= periods_necessary_for_average * min_per_week / time_diff_min:
                 average_length.append(int(min_per_week / time_diff_min))
                 season = int(min_per_week / time_diff_min)
             # average over month
-            if num_data >= periods_necessary_for_average * min_per_month / time_diff_min:
+            #if num_data >= periods_necessary_for_average * min_per_month / time_diff_min:
                 #average_length.append(int(min_per_month / time_diff_min))
-                season = int(min_per_month / time_diff_min)
+                #season = int(min_per_month / time_diff_min)
             # average over year
             if num_data >= periods_necessary_for_average * min_per_year / time_diff_min:
                 #average_length.append(int(min_per_year / time_diff_min))
@@ -555,24 +564,40 @@ class UnivariateOutlierDetection:
             self.AddDetector(['STD', [1], [['average', [a]]], sigma_STD])
             self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
 
+
+        average_period = int(season/10)
+
+        has_negatives = self.series.lt(0).any()
+
+        if has_negatives:
+            seasonality_type = 'additive'
+        else:
+            R2_additive = self.SeasonalityR2(period = season, average_period = average_period, type = 'additive')
+            R2_multiplicative = self.SeasonalityR2(period = season, average_period = average_period, type = 'multiplicative')
+            if R2_multiplicative > R2_additive:
+                seasonality_type = 'multiplicative'
+            else: 
+                seasonality_type = 'additive'
+
+
         if not season == None:
 
             if season == 365:
-                average_period = 30
-                if self.IsSeasonalitySignificant(period = season, average_period = average_period, threshold_R2 = 0.1, type = 'multiplicative'):
-                    self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, 'multiplicative']]], sigma_STD])
-                    self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, 'multiplicative']]], 1.0 + deviation_PRE])
-                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']], ['season_subtract', [365, 30, 'multiplicative']]], sigma_STD])
-                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']], ['season_subtract', [365, 30, 'multiplicative']], ['restrict_data_to', [365, detector_window_length]]], sigma_STD])
-                elif self.IsSeasonalitySignificant(period = 7, average_period = 1, threshold_R2 = 0.2, type = 'multiplicative'):
-                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']]], sigma_STD])
+                average_period = 30 # remove spikes that may be spurious in the INVTEREST data. averaging however procudes bad results e.g. with Numenta data. 
+                if self.IsSeasonalitySignificant(period = season, average_period = average_period, threshold_R2 = 0.1, type = seasonality_type):
+                    self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]]], sigma_STD])
+                    self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, seasonality_type]]], 1.0 + deviation_PRE])
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, seasonality_type]], ['season_subtract', [365, 30, seasonality_type]]], sigma_STD])
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, seasonality_type]], ['season_subtract', [365, 30, seasonality_type]], ['restrict_data_to', [365, detector_window_length]]], sigma_STD])
+                elif self.IsSeasonalitySignificant(period = 7, average_period = 1, threshold_R2 = 0.2, type = seasonality_type):
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, seasonality_type]]], sigma_STD])
 
                 self.AddDetector(['STD', [1], [['restrict_data_to', [365, detector_window_length]]], sigma_STD])
 
             else:
-                average_period = max(1, int(season / 10))
-                self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, 'multiplicative']]], sigma_STD])
-                self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, 'multiplicative']]], 1.0 + deviation_PRE])
+                average_period = 1
+                self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]]], sigma_STD])
+                self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, seasonality_type]]], 1.0 + deviation_PRE])
             
                     
 
