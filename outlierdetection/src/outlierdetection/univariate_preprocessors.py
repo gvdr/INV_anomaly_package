@@ -16,7 +16,7 @@ def pp_average(self, processed_series, args):
     try:
         width = int(args[0])
         add_skip = width
-        processed_series = processed_series.rolling(width, min_periods=int(width / 2), center=False, win_type=None, on=None, axis=0, closed=None, step=None, method='single').mean()
+        processed_series = processed_series.rolling(width, min_periods=int(width * 3/4), center=False, win_type=None, on=None, axis=0, closed=None, step=None, method='single').mean()
     except Exception as e:
         print("An exception occurred during pp_average: " + str(e))
         critical_error = True
@@ -85,13 +85,14 @@ def pp_season_subtract(self, processed_series, args):
     try:
         #print(args)
         period = int(args[0])
-        type = str(args[1])
+        average_period = int(args[1])
+        type = str(args[2])
         nans = np.where(processed_series.isnull())
         #print(nans)
         imputed_series, _, _ = self.pp_fillna_linear(processed_series)
         seasonal_result = seasonal_decompose(imputed_series, model=type, period=period).seasonal
-        if period == 365:
-            seasonal_result = seasonal_result.rolling(30, min_periods = 3, center=True).mean()
+        if average_period > 1:
+            seasonal_result = seasonal_result.rolling(average_period, min_periods = 3, center=True).mean()
         if type == 'additive':
             imputed_series -= seasonal_result 
         if type == 'multiplicative':

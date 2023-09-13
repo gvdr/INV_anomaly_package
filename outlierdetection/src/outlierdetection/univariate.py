@@ -161,6 +161,42 @@ class UnivariateOutlierDetection:
         return self.WindowOutlierScore(training, test)
     
 
+    def GetOutlierTypes(self, preprocessor):
+
+        density = False
+        average_period = -1
+        seasonal = False
+        seasonal_period = -1
+        restrict = False
+        restrict_period = 0
+
+        for p in preprocessor:
+            type = p[0]
+            if type == 'season_subtract':
+                seasonal = True
+                seasonal_period = max(seasonal_period, p[1][0])
+            if type == 'average':
+                density = True
+                average_period = max(average_period, p[1][0])
+            if type == 'restrict_data_to':
+                restrict = True
+                restrict_period += p[1][0]
+
+
+        answer = ""
+
+        if seasonal:
+            answer += f" seasonal ({seasonal_period})"
+        if density:
+            answer += f" density ({average_period})"
+        answer += " outlier"
+        if restrict:
+            answer += f" with comparison window restricted to last {restrict_period} datapoints"
+
+        answer = answer[1:].capitalize()
+
+        return answer
+
     def InterpretPointScore(self, scores):
         message_detail = []
 
@@ -209,12 +245,14 @@ class UnivariateOutlierDetection:
 
             if type == 'PRE':
                 val = np.abs(val)
+                types = self.GetOutlierTypes(preprocessor)
                 if val >= 1.0 + threshold:
-                    message_detail.append(f"A value this extreme was never seen before. It deviates by at least {((val-1.0)*100):.0f}% from the previously seen value range. " + full_name)
+                    
+                    message_detail.append(f"{types}: a value this extreme was never seen before. It deviates by at least {((val-1.0)*100):.0f}% from the previously seen value range. ")
                     isOutlier = True
                     isOutlierCurrent = True
                 if val == 1:
-                    message_detail.append(f"A similar value has never been observed before, but it is within the previously observed data range. " + full_name)
+                    message_detail.append(f"{types}: a similar value has never been observed before, but it is within the previously observed data range. ")
                     isOutlier = True
                     isOutlierCurrent = True
 
@@ -225,7 +263,8 @@ class UnivariateOutlierDetection:
                     isOutlier = True
                     isOutlierCurrent = True
                     m = []
-                    m.append(f"Density outlier detected of {val:.1f} sigma. " + full_name)
+                    types = self.GetOutlierTypes(preprocessor)
+                    m.append(f"{types} detected: {val:.1f} sigma. ")
                     #val2 = np.abs(scores['PRE[10][A10]'])
                     #if val2 < 1:
                     #    m.append(f'But a similar contextual outlier has been seen before in {((1.0 - val2)*100):.0f}% of measurements.')
@@ -234,7 +273,7 @@ class UnivariateOutlierDetection:
             if type == 'PRO':
                 val = np.abs(val)
                 if val >= threshold:
-                    message_detail.append(f"Contextual outlier (via Prophet) detected with strength {val:.1f}. " + full_name)
+                    message_detail.append(f"Contextual outlier (via Prophet) detected with strength {val:.1f}. ")
                     isOutlier = True
                     isOutlierCurrent = True
 
@@ -392,6 +431,28 @@ class UnivariateOutlierDetection:
         return result
 
 
+    def IsSeasonalitySignificant(self, period, average_period, threshold_R2 = 0.1, type = 'multiplicative'):
+
+        if self.series.isnull().values.any():
+            nans = np.where(self.series.isnull())
+
+        deseasoned, _, _ = self.pp_season_subtract(self.series, [period, average_period, type])
+
+        if nans:
+            deseasoned.iloc[nans] = np.nan
+
+        variance_average_period = period
+
+        var_signal = self.series.rolling(variance_average_period, min_periods=1, center=False, win_type=None, on=None, axis=0, closed=None, step=None, method='single').var()
+        var_deseasoned = deseasoned.rolling(variance_average_period, min_periods=1, center=False, win_type=None, on=None, axis=0, closed=None, step=None, method='single').var()
+        R2 = 1 - var_deseasoned / var_signal
+
+        #print(f"Seasonality R2 improvement: {np.mean(R2.dropna())}")
+
+        return np.mean(R2.dropna()) >= threshold_R2                        
+
+        
+
     def AutomaticallySelectDetectors(self, sigma_STD = 4, deviation_PRE = 0.05, periods_necessary_for_average = 3, detector_window_length = 1):
         self.ClearDetectors()
         # find most often occurring time difference in nanoseconds and store in time_diff_ns
@@ -410,7 +471,7 @@ class UnivariateOutlierDetection:
 
         time_diff_hours = time_diff_min / 60
 
-        print(f"Time difference: {time_diff_min} minutes")
+        #print(f"Time difference: {time_diff_min} minutes")
 
         min_per_hour = 60
 
@@ -484,7 +545,7 @@ class UnivariateOutlierDetection:
 
         # Maybe downsample to month first, then do yearly seasonality subtraction 
 
-
+        # Standard detectors
         self.AddDetector(['STD', [1], [], sigma_STD])
         self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
 
@@ -495,13 +556,27 @@ class UnivariateOutlierDetection:
             self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
 
         if not season == None:
-            self.AddDetector(['STD', [1], [['season_subtract', [season, 'multiplicative']]], sigma_STD])
-            self.AddDetector(['PRE', [10], [['season_subtract', [season, 'multiplicative']]], 1.0 + deviation_PRE])
 
-        if season == 365:
-            self.AddDetector(['STD', [1], [['season_subtract', [7, 'multiplicative']], ['season_subtract', [365, 'multiplicative']]], sigma_STD])
-            self.AddDetector(['STD', [1], [['season_subtract', [7, 'multiplicative']], ['season_subtract', [365, 'multiplicative']], ['skip_from_beginning', [len(self.series) - 365]]], sigma_STD])
-            self.AddDetector(['STD', [1], [['restrict_data_to', [365, detector_window_length]]], sigma_STD])
+            if season == 365:
+                average_period = 30
+                if self.IsSeasonalitySignificant(period = season, average_period = average_period, threshold_R2 = 0.1, type = 'multiplicative'):
+                    self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, 'multiplicative']]], sigma_STD])
+                    self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, 'multiplicative']]], 1.0 + deviation_PRE])
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']], ['season_subtract', [365, 30, 'multiplicative']]], sigma_STD])
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']], ['season_subtract', [365, 30, 'multiplicative']], ['restrict_data_to', [365, detector_window_length]]], sigma_STD])
+                elif self.IsSeasonalitySignificant(period = 7, average_period = 1, threshold_R2 = 0.2, type = 'multiplicative'):
+                    self.AddDetector(['STD', [1], [['season_subtract', [7, 1, 'multiplicative']]], sigma_STD])
+
+                self.AddDetector(['STD', [1], [['restrict_data_to', [365, detector_window_length]]], sigma_STD])
+
+            else:
+                average_period = max(1, int(season / 10))
+                self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, 'multiplicative']]], sigma_STD])
+                self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, 'multiplicative']]], 1.0 + deviation_PRE])
+            
+                    
+
+            
 
 
     def PrintDetectors(self):
