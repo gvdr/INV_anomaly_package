@@ -9,6 +9,7 @@ Contains the definition of the UnivariateOutlierDetection class.
 import numpy as np 
 import pandas as pd 
 import json
+from datetime import datetime, timedelta
 
 from statsmodels.tsa.seasonal import MSTL
 
@@ -17,7 +18,7 @@ from statsmodels.tsa.seasonal import MSTL
 import warnings
 warnings.filterwarnings(action='ignore',category=FutureWarning)
 
-def process_last_point(ts,ts_dates):
+def process_last_point(ts, ts_dates):
     """
     Simplest one-line call, takes time series values and dates as lists.
     """
@@ -27,6 +28,36 @@ def process_last_point(ts,ts_dates):
     OD.AutomaticallySelectDetectors(detector_window_length=1)
     last_point_scores = OD.LastOutlierScore().iloc[0,:]
     result = OD.InterpretPointScore(last_point_scores)
+    return result
+
+def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_beginning = 0):
+
+    
+    ts_dates = pd.to_datetime(ts_dates)
+    ts_panda = pd.Series(index = ts_dates[skip_from_beginning:], data = ts[skip_from_beginning:])
+    OD = UnivariateOutlierDetection(ts_panda)    
+
+    lenght_data = len(ts_dates) - skip_from_beginning
+    length_past = lenght_data - window_size
+    length_future = window_size
+    past = ts_dates[skip_from_beginning:(skip_from_beginning+length_past)]
+    future = ts_dates[(skip_from_beginning+length_past):]
+
+    OD.AutomaticallySelectDetectors(detector_window_length = length_future)
+    OD.PrintDetectors()
+
+    # Get outlier true/false for previous points
+    scores = OD.WindowOutlierScore(past, future[:-1])
+
+    final_score = np.repeat(0, length_future - 1)
+    for k in range(length_future - 1):
+        isOutlier, _, _, _ = OD.InterpretPointScore(scores.loc[future[k], :])
+        if isOutlier:
+            final_score[k] = 1
+    #final_score = pd.Series(index=future, data=final_score)
+
+    result = OD.InterpretPointScore(scores.loc[future[-1], :], previous_outliers = final_score.to_list())
+
     return result
 
 
@@ -58,6 +89,9 @@ class UnivariateOutlierDetection:
             Duplicate indices are removed, first are kept. 
         """
 
+        self.cluster_density_threshold = 3 
+        self.min_training_data = 5
+
         if not isinstance(series, pd.Series):
             raise TypeError("Passed series is not a pd.Series.")
         if not isinstance(series.index, pd.DatetimeIndex):
@@ -76,7 +110,7 @@ class UnivariateOutlierDetection:
         self.trend = None
         self.resid = None
 
-        self.min_training_data = 5
+        
 
         nans = series.isna() 
         nan_times = nans[nans==True].index.to_list()
@@ -196,8 +230,41 @@ class UnivariateOutlierDetection:
         answer = answer[1:].capitalize()
 
         return answer
+    
 
-    def InterpretPointScore(self, scores):
+    def IsOutlierCluster(self, previous_outliers, dropoff = 0.1):
+
+        if not previous_outliers:
+            return False
+        
+        # weigh outliers closer to the last one exponentially more
+        previous_outliers.reverse() # so that closer outliers are weighted more wiht the weighting below
+
+        score = 0
+        i=0
+        for x in previous_outliers:
+            score += x * np.exp( - i * dropoff)
+            i += 1
+
+        #print(f"Previous score: {score}")
+
+        return score >= self.cluster_density_threshold
+    
+
+    def GetTimeStep(self):
+        time_differences_ns = np.diff(self.series.index).astype(int)
+        unique, counts = np.unique(time_differences_ns, return_counts=True)
+        dic = dict(zip(unique, counts))
+        max = - 1
+        time_diff_ns = 0
+        for key, value in dic.items():
+            if value > max:
+                max = value
+                time_diff_ns = key
+        return time_diff_ns
+
+
+    def InterpretPointScore(self, scores, previous_outliers = []):
         message_detail = []
 
         isOutlier = False
@@ -277,12 +344,17 @@ class UnivariateOutlierDetection:
                     isOutlier = True
                     isOutlierCurrent = True
 
-            if isOutlierCurrent:
-                for p in preprocessor:
-                    if p[0] == 'season_subtract':
-                        type_seasonal = True
-                    if p[0] == 'average':
-                        type_density = True
+
+        if isOutlier:
+            if self.IsOutlierCluster(previous_outliers):
+
+                time_diff_ns = self.GetTimeStep()
+
+                steps = len(previous_outliers)+1
+
+                outlier_window_size_str = str(timedelta(microseconds = (steps) * time_diff_ns / 1000 ))
+
+                message_detail.append(f'The outlier appears to be part of an outlier cluster in a window of size {outlier_window_size_str} ({steps} time steps) ending here.')
 
 
             current_response.append(val)
@@ -311,14 +383,14 @@ class UnivariateOutlierDetection:
 
             detector_responses.append(current_response_dic)
 
-        if type_seasonal and type_density:
-            high_level_description = "Seasonal / density outlier"
-        elif type_seasonal:
-            high_level_description = "Seasonal outlier"
-        elif type_density:
-            high_level_description = "Density outlier"
-        elif isOutlier:
-            high_level_description = "Range outlier"
+        #if type_seasonal and type_density:
+        #    high_level_description = "Seasonal / density outlier"
+        #elif type_seasonal:
+        #    high_level_description = "Seasonal outlier"
+        #elif type_density:
+        #    high_level_description = "Density outlier"
+        #elif isOutlier:
+        #    high_level_description = "Range outlier"
 
         # preliminary anomaly strength counter. 
         max_level = max((max_level_PRE - 1.0) * 5.0, max_level_STD)
@@ -571,7 +643,7 @@ class UnivariateOutlierDetection:
 
         average_period = int(season/10)
 
-        has_negatives = self.series.lt(0).any()
+        has_negatives = self.series.le(0).any()
 
         if has_negatives:
             seasonality_type = 'additive'
