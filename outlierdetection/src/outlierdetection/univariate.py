@@ -420,6 +420,10 @@ class UnivariateOutlierDetection:
                         perform_detection_after_preprocessing = False
 
                     if perform_detection_after_preprocessing:
+                        # check if the data that needs to be skipped is anyway skipped due to training starting not at beginning of series and remove those from skip
+                        first_train_iloc = self.series.index.get_loc(training[0])
+                        skip = max(skip - first_train_iloc, 0)
+
                         result[name] = detector(processed_series, training[skip:], test, arguments)
                     else:
                         result[name] = np.nan
