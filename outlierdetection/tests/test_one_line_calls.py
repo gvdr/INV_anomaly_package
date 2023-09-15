@@ -77,4 +77,38 @@ def test_seasonal_outlier():
     assert result_responses
 
 
+def test_seasonal_outlier_with_cluster():
+
+    df = pd.read_csv(TEST_DIR + '/data/NAB/data/artificialWithAnomaly/art_daily_nojump.csv')
+
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df = df.set_index('timestamp')
+
+    df = df.loc[:pd.to_datetime('2014-04-11 09:30:00'), :] # this value is a clear seasonal anomaly that is not a value outlier
+
+    print(df.tail())
+
+
+    ts = df.loc[:, 'value'].to_list()
+    ts_dates = df.index.to_list()
+
+    isOutlier, max_strength, message_detail, result_responses = UOD.process_last_point_with_window(ts, ts_dates, window_size = 10)
+
+
+    print(max_strength)
+    print(message_detail)
+    print(result_responses)
+
+    cluster_detected = False
+    for m in message_detail:
+        if 'cluster' in m:
+            cluster_detected = True
+
+
+    assert isOutlier == True, "Clear seasonal outlier not detected by process_last_point(ts, ts_dates). 5 minute data from NAB."
+    assert cluster_detected, "Clear outlier cluster was not detected"
+    assert message_detail
+    assert result_responses
+
+
 

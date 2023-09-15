@@ -98,10 +98,10 @@ def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_begin
     future = ts_dates[(skip_from_beginning+length_past):]
 
     OD.AutomaticallySelectDetectors(detector_window_length = length_future)
-    OD.PrintDetectors()
+    #OD.PrintDetectors()
 
     # Get outlier true/false for previous points
-    scores = OD.WindowOutlierScore(past, future[:-1])
+    scores = OD.WindowOutlierScore(past, future)
 
     final_score = np.repeat(0, length_future - 1)
     for k in range(length_future - 1):
@@ -110,7 +110,7 @@ def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_begin
             final_score[k] = 1
     #final_score = pd.Series(index=future, data=final_score)
 
-    result = OD.InterpretPointScore(scores.loc[future[-1], :], previous_outliers = final_score.to_list())
+    result = OD.InterpretPointScore(scores.loc[future[-1], :], previous_outliers = final_score.tolist())
 
     return result
 
@@ -539,7 +539,7 @@ class UnivariateOutlierDetection:
 
                 outlier_window_size_str = str(timedelta(microseconds = (steps) * time_diff_ns / 1000 ))
 
-                message_detail.append(f'The outlier appears to be part of an outlier cluster in a window of size {outlier_window_size_str} ({steps} time steps) ending here.')
+                message_detail.append(f'The outlier appears to be part of an outlier cluster. (Tested in a window of size {outlier_window_size_str} (= {steps} time steps) ending here.)')
 
 
             current_response.append(val)
