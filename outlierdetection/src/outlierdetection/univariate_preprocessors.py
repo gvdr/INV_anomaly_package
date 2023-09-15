@@ -11,6 +11,28 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 
 
 def pp_average(self, processed_series, args):
+    """
+    Rolling average
+     
+    Performs a rolling average on the series over a window of size args[0] with right boundary at the current point.
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] = window size for averaging w.r.t. time series steps 
+    
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing (here due to boundary effects of the rolling average)
+    """
+
     critical_error = False
     add_skip = 0
     try:
@@ -24,6 +46,28 @@ def pp_average(self, processed_series, args):
 
 
 def pp_power(self, processed_series, args):
+    """
+    Raise to power
+     
+    Computes a power of the absolute value of the time series
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] = power
+    
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0         
     try:
@@ -36,6 +80,28 @@ def pp_power(self, processed_series, args):
 
 
 def pp_median(self, processed_series, args):
+    """
+    Median
+     
+    Substitutes time series points by the median over a window of size args[0] with right boundary at the current point.
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] = window size
+    
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0         
     try:
@@ -50,6 +116,29 @@ def pp_median(self, processed_series, args):
 
 
 def pp_volatility(self, processed_series, args):
+    """
+    Volatility
+     
+    Substitutes time series points by a measure of their volatility.
+    Subtracts a local median from the data point and then takes the absolute value. 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] = window size over which median is computed. 
+    
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0         
     try:
@@ -66,6 +155,28 @@ def pp_volatility(self, processed_series, args):
 
 
 def pp_difference(self, processed_series, args):
+    """
+    Differencing
+     
+    Differences the time series with a specified n_shift. output = (1 - BACKSHIFT^n_shift) input 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] = n_shift.  
+    
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0         
     try:
@@ -79,6 +190,33 @@ def pp_difference(self, processed_series, args):
 
       
 def pp_season_subtract(self, processed_series, args):
+    """
+    Subtracting seasonality
+     
+    Subtracts a specified seasonality from the time series. 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            Peroid over which the seasonality is computed. 
+        args[1] : int
+            Seasonality is smoothed up this scale, i.e. neglected below the scale. 
+        args[2] = str
+            Seasonality type, either 'multiplicative' or 'additive. Time series values need to be >0 for multiplicative. 
+
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+     
     critical_error = False       
     add_skip = 0 
     imputed_series = processed_series.copy()        
@@ -107,6 +245,29 @@ def pp_season_subtract(self, processed_series, args):
 
 
 def pp_fillna_linear(self, processed_series, args=[]):
+    """
+    Linear imputation of missing values
+     
+    Fills missing values via Pandas interpolate with linear approximations between available points. 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            Maximal subsequent missing values that are imputed. If args=[] or not specified, this is taken as the series length. 
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0
     try:    
@@ -123,6 +284,28 @@ def pp_fillna_linear(self, processed_series, args=[]):
 
 
 def pp_get_resid(self, processed_series, args=[]):
+    """
+    MSTL Residual
+     
+    Returns the MSTL residual computed with CalcualteMSTL()
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series NOT USED HERE
+    args : list
+        args ARE NOT USED HERE
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0  
     try:  
@@ -135,6 +318,28 @@ def pp_get_resid(self, processed_series, args=[]):
 
 
 def pp_get_trend(self, processed_series, args=[]):
+    """
+    MSTL Trend
+     
+    Returns the MSTL trend computed with CalcualteMSTL()
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series NOT USED HERE
+    args : list
+        args ARE NOT USED HERE
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0    
     try:
@@ -147,6 +352,28 @@ def pp_get_trend(self, processed_series, args=[]):
 
 
 def pp_get_trend_plus_resid(self, processed_series, args=[]):
+    """
+    MSTL Residual + Trend
+     
+    Returns the MSTL residual + trend computed with CalcualteMSTL()
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series NOT USED HERE
+    args : list
+        args ARE NOT USED HERE
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     add_skip = 0    
     try:
@@ -159,6 +386,30 @@ def pp_get_trend_plus_resid(self, processed_series, args=[]):
 
 
 def pp_skip_from_beginning(self, processed_series, args=[0]):
+    """
+    Skip time steps at beginning
+     
+    Skips a number of time steps from the beginning of the series via adding its argument to the skip counter
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            Numer of time steps to be skipped
+   
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     try:
         add_skip = args[0] 
@@ -168,6 +419,31 @@ def pp_skip_from_beginning(self, processed_series, args=[0]):
     return processed_series, critical_error, add_skip
 
 def pp_restrict_data_to(self, processed_series, args=[]):
+    """
+    Restricts series to later points
+     
+    Skips a number of time steps from the beginning so that a total window of args[0] + args[1] at the end of the series is kept
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            size of training window to be kept
+        args[1] : int
+            size of test window to be kept
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+
     critical_error = False       
     try:
         training_length = args[0] 

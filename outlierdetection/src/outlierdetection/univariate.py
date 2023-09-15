@@ -5,6 +5,8 @@ univariate.py
 Contains the definition of the UnivariateOutlierDetection class. 
 """
 
+__version__ = '0.1.0'
+
 # general
 import numpy as np 
 import pandas as pd 
@@ -20,7 +22,31 @@ warnings.filterwarnings(action='ignore',category=FutureWarning)
 
 def process_last_point(ts, ts_dates):
     """
+    One-line call for last point. 
+
     Simplest one-line call, takes time series values and dates as lists.
+    Training data is the whole time series except the last point. 
+    Outlier scores are evaluated on the last point only. 
+
+    Parameters
+    ----------
+    ts : list (or similar object parsable by pandas) of floats 
+        Values of the time series. 
+    ts_dates : list (or similar object parsable by pandas) of time stamps, need to be parsable by pd.to_datetime()
+        Time stamps of the time series. 
+        Needs to have the same length as ts
+
+    Returns
+    -------
+    isOutlier : bool
+        Is the last point an outlier?
+    max_level : float 
+        overall anomaly score
+    message_detail : list
+        List of strings containing supplementary information about the anomaly in case isOutlier == True
+    detector_responses : json
+        Json containing the detailed detector parameters and responses 
+
     """
     ts_dates = pd.to_datetime(ts_dates)
     ts_panda = pd.Series(index = ts_dates, data = ts)
@@ -30,8 +56,36 @@ def process_last_point(ts, ts_dates):
     result = OD.InterpretPointScore(last_point_scores)
     return result
 
-def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_beginning = 0):
 
+def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_beginning = 0):
+    """
+    One-line call for last point including cluster analysis. 
+    
+    Evaluteas and interprets outlier score of last point and checks whether this belongs to a cluster of outliers of window_size. 
+
+    Parameters
+    ----------
+    ts : list (or similar object parsable by pandas) of floats 
+        Values of the time series. 
+    ts_dates : list (or similar object parsable by pandas) of time stamps, need to be parsable by pd.to_datetime()
+        Time stamps of the time series. 
+        Needs to have the same length as ts
+    window_size : int
+        Size of the window (test data range) relative to the time step in the time series. 
+    skip_from_beginning : int
+        Skip this many points from the beginning of the time series before training data range starts. 
+
+    Returns
+    -------
+    isOutlier : bool
+        Is the last point an outlier?
+    max_level : float 
+        overall anomaly score
+    message_detail : list
+        List of strings containing supplementary information about the anomaly in case isOutlier == True
+    detector_responses : json
+        Json containing the detailed detector parameters and respondes 
+    """
     
     ts_dates = pd.to_datetime(ts_dates)
     ts_panda = pd.Series(index = ts_dates[skip_from_beginning:], data = ts[skip_from_beginning:])
@@ -62,6 +116,7 @@ def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_begin
 
 
 
+
 class UnivariateOutlierDetection:
     """
     Univariate outlier detection class. 
@@ -89,7 +144,6 @@ class UnivariateOutlierDetection:
             Duplicate indices are removed, first are kept. 
         """
 
-        self.cluster_density_threshold = 3 
         self.min_training_data = 5
 
         if not isinstance(series, pd.Series):
@@ -123,6 +177,12 @@ class UnivariateOutlierDetection:
 
     # Generally has poor performance as compared to manual season_subtract
     def CalculateMSTL(self, periods = [7, 365]):
+        """
+        Calculates Season-Trend decomposition using LOESS for multiple seasonalities using MSTL from statsmodels.
+
+        Results are stored in self.trend and self.resid.
+        Tends to result in false positives for outliers, pp_season_subtract function tends to be more reliable, use this instead for now. 
+        """
 
         nans = np.where(self.series.isnull())
 
@@ -147,23 +207,65 @@ class UnivariateOutlierDetection:
 
         Returns
         -------
-        self.series : stored time series
-            pd.Series stored. 
+        self.series : pd.Series of floats with datetime index
+            stored time series
         """
         return self.series
     
 
     def GetTrend(self):
+        """
+        Returns the trend of the stored time series after CalculateMSTL() has been called. 
+
+        Returns
+        -------
+        self.trend : pd.Series of floats with datetime index
+            stored time series trend
+        """
         return self.trend
     
     def GetResid(self):
+        """
+        Returns the residual of the stored time series after CalculateMSTL() has been called. 
+
+        Returns
+        -------
+        self.resid : pd.Series of floats with datetime index
+            stored time series residuals
+        """
         return self.resid
     
     def GetResidPlusTrend(self):
+        """
+        Returns the trend plus residual of the stored time series after CalculateMSTL() has been called. 
+
+        This is the analogue of using season_subtract on the time series as the missing component is the seasonality. 
+
+        Returns
+        -------
+        self.resid + self.trend : pd.Series of floats with datetime index
+            stored time series trend + residual
+        """
         return self.resid + self.trend
     
 
     def AddDetector(self, new_detector):
+        """
+        Appends a new detector to the list of already existing detectors. 
+
+        Parameters
+        ----------
+        new_detector : list, e.g. ['STD', [relative_sigma], [['season_subtract', [season, average_period, seasonality_type]]], sigma_STD]
+            [0]: string 
+                type of the detector, e.g. 'STD', 'PRE', ...
+            [1]: list
+                detector parameters
+            [2]: list
+                series preprocessor directives
+            [3]: float
+                detector threshold
+
+        """
         self.num_detectors += 1
         new_detector.append(new_detector[0]) # store the name before turning into a function
         new_detector.append(self.num_detectors) # 1, 2, 3 ... detector ID
@@ -172,11 +274,17 @@ class UnivariateOutlierDetection:
         
 
     def ClearDetectors(self):
+        """
+        Deletes the list of detectors. At least one detector needs to be added afterwards before the outlier detection can be used. 
+        """
         self.detectors = []
         self.num_detectors = 0
 
 
     def SetStandardDetectors(self):
+        """
+        Selects a set of standard detectors applicable to generic time series. Better call AutomaticallySelectDetectors() instead for detectors customised for the stored time series.
+        """
         self.ClearDetectors()
         self.AddDetector(['STD', [1], [], 5])
         self.AddDetector(['PRE', [10], [], 0.05])
@@ -185,6 +293,14 @@ class UnivariateOutlierDetection:
     
     
     def LastOutlierScore(self, window = None):
+        """
+        Short hand call of WindowOutlierScore() that takes all of the stored series (or a window) except the last point as training data and check the last point for being an outlier. No checking for outlier clustering. 
+
+        Parameters
+        ----------
+        window : list of datetime objects matching parts of the stored series' index
+            if not set to None, training + test is taken from this window instead of the whole stored series. 
+        """
         if window == None:
             window = self.series.index.to_list()
         #print(window)
@@ -196,6 +312,19 @@ class UnivariateOutlierDetection:
     
 
     def GetOutlierTypes(self, preprocessor):
+        """
+        Create a descriptive string of the outlier type that a detector with the given preprocessor directives would detect. 
+
+        Parameters
+        ----------
+        preprocessor : list 
+            preprocessor directives for a detector
+
+        Returns
+        -------
+        answer : string
+            description of outlier type to be used further in creating messages describing the outlier type. 
+        """
 
         density = False
         average_period = -1
@@ -232,7 +361,24 @@ class UnivariateOutlierDetection:
         return answer
     
 
-    def IsOutlierCluster(self, previous_outliers, dropoff = 0.1):
+    def IsOutlierCluster(self, previous_outliers, dropoff = 0.1, cluster_density_threshold = 3.0):
+        """
+        Check whether a given 
+
+        Parameters
+        ----------
+        previous_outliers : list of int (0 or 1)
+            0 or 1 encoding of whether the previous points were outliers. End of list is neighboring the currently tested point that has to be an outlier.  
+        dropoff : float
+            exponential dampening factor. outliers with distance i away from the currently tested point contribute exponentially less to the overall score as += np.exp( - i * dropoff)
+        cluster_density_threshold : float
+            returns true if the summed conributions of all previous outliers in the list are at least this value. 
+
+        Returns
+        -------
+        answer : bool
+            True if there is an outlier cluster, False otherwise. 
+        """
 
         if not previous_outliers:
             return False
@@ -248,10 +394,21 @@ class UnivariateOutlierDetection:
 
         #print(f"Previous score: {score}")
 
-        return score >= self.cluster_density_threshold
+        return score >= cluster_density_threshold
     
 
     def GetTimeStep(self):
+        """
+        Extract the time step in the stored time series. 
+
+        In case of multiple occuring time steps, the most frequent one is returend.
+
+        Returns
+        -------
+        time_diff_ns : int
+            Most frequent time difference in the series index in nanoseconds 
+        """
+
         time_differences_ns = np.diff(self.series.index).astype(int)
         unique, counts = np.unique(time_differences_ns, return_counts=True)
         dic = dict(zip(unique, counts))
@@ -265,6 +422,34 @@ class UnivariateOutlierDetection:
 
 
     def InterpretPointScore(self, scores, previous_outliers = []):
+        """
+        Interprets the outlier scores of the set of detectors stored detectors. 
+
+        Parameters
+        ----------
+        scores : pd.Dataframe 
+            Has to contain exactly one row. 
+            Column names are 'D_1', 'D_2', ... labelling the detectors w.r.t. to the detector list. 
+            Values are the return values of those detectors. 
+
+        previous_outliers : list of int
+            0 or 1 encoding of whether the previous points were outliers. 
+            End of list is neighboring the currently tested point that has to be an outlier.
+            If empty, no cluster testing is performed. 
+            
+
+        Returns
+        -------
+        isOutlier : bool
+            Is the last point an outlier?
+        max_level : float 
+            overall anomaly score
+        message_detail : list
+            List of strings containing supplementary information about the anomaly in case isOutlier == True
+        detector_responses : json
+            Json containing the detailed detector parameters and responses 
+        """
+
         message_detail = []
 
         isOutlier = False
@@ -434,6 +619,24 @@ class UnivariateOutlierDetection:
         
 
     def WindowOutlierScore(self, training, test):
+        """
+        Calculates the outlier scores given a training and test window. 
+
+        Parameters
+        ----------
+        training : list of datetime indices
+            Datetime indices of a subset of the time series to be used for training the detectors. 
+
+        test : list of datetime indices
+            Datetime indices of a subset of the time series to be used for calculating the outlier scores. 
+            
+
+        Returns
+        -------
+        result : pd.DataFrame
+            Dataframe containing as column names the detectors ('D_1', 'D_2', ...) and as row indices the datetime indices of the test list.
+            Values are the outlier scores of the detectors. 
+        """
 
         perform_detection = True
 
@@ -507,7 +710,29 @@ class UnivariateOutlierDetection:
         return result
 
 
+
     def IsSeasonalitySignificant(self, period, average_period, threshold_R2 = 0.1, type = 'multiplicative'):
+        """
+        Checks whether a given seasonality is significanlty present in the stores seriess. 
+
+        Parameters
+        ----------
+        period : int
+            Length of the period tested for w.r.t. time series steps
+        average_period : int
+            Averaging period passed to pp_season_subtract. Seasonality is smoothed up this scale, i.e. neglected below the scale. 
+        threshold_R2 : float
+            Threshold of the R_square statistic above which seasonality is significant (return True)
+        type : str
+            Type of the seasonality. Either 'multiplicative' or 'additive'. 
+            
+
+        Returns
+        -------
+        result : bool
+            Is the seasonality significant (yes = True / no = False)?
+        """
+
 
         R2 = self.SeasonalityR2(period = period, average_period = average_period, type = type)
 
@@ -515,6 +740,24 @@ class UnivariateOutlierDetection:
 
 
     def SeasonalityR2(self, period, average_period, type = 'multiplicative'):
+        """
+        Computes the R_square statistic of the improvement a given seasonality yields in modelling the stored series. 
+
+        Parameters
+        ----------
+        period : int
+            Length of the period tested for w.r.t. time series steps
+        average_period : int
+            Averaging period passed to pp_season_subtract. Seasonality is smoothed up this scale, i.e. neglected below the scale. 
+        type : str
+            Type of the seasonality. Either 'multiplicative' or 'additive'. 
+            
+
+        Returns
+        -------
+        R2 : float
+            R2 statistic of the seasonality model
+        """
 
         nans=[]
         if self.series.isnull().values.any():
@@ -538,6 +781,22 @@ class UnivariateOutlierDetection:
         
 
     def AutomaticallySelectDetectors(self, sigma_STD = 4, deviation_PRE = 0.05, periods_necessary_for_average = 3, detector_window_length = 1):
+        """
+        Automatically selects a set of detectors fit for the stored time series.  
+
+        Parameters
+        ----------
+        sigma_STD : float
+            Threshold for STD based detectors. Outliers occur when the deviation from the training data mean is at least sigma_STD standard deviations. 
+        deviation_PRE : float
+            Threshold for PRE based detectors. Outlier will be detected if observed value deviates at least deviation_PRE * 100 % from the previously seen range. 
+        periods_necessary_for_average : int
+            At least this many full periods need to be present in the time series in order to apply seasonality modeling. 
+            Must be at least 2 for statsmodels routines to work. 
+        detector_window_length : int
+            Length of the intended testing window w.r.t. time series steps. (E.g. 10 for testing the last 10 points of the series.)
+        """
+
         self.ClearDetectors()
         # find most often occurring time difference in nanoseconds and store in time_diff_ns
         time_differences_ns = np.diff(self.series.index).astype(int)
@@ -681,10 +940,23 @@ class UnivariateOutlierDetection:
 
 
     def PrintDetectors(self):
+        """
+        Prints all detectors the standard output stream. 
+        """
+
         for d in self.detectors:
             print(d) 
 
     def GetDetectorNames(self):
+        """
+        Get descriptive names of all stored detectors. 
+
+        Returns
+        -------
+        names : list of strings
+            A list of the full detector names including parameters and preprocessor directives in order in which they are stored. 
+        """
+
         names = []
         for detector in self.detectors:
             

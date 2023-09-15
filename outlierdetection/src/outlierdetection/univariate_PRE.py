@@ -3,6 +3,30 @@ import pandas as pd
 
 
 def PRE(self, processed_series, training, test, args = [1]):
+    """
+    Previous value comparison detector
+     
+    Computes a histogram of the previously seen (training) data and evalutes the test data based on whether it has been seen before, is within the previously seen range, or significanlty lies outside the previously seen range. 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            Number of bins used in constructing the histogram
+   
+            
+    Returns
+    -------
+    result : float
+        Outlier score. 
+            Smaller than 1: Value was seen before (is within a histogram bin) and the probability of the bin is 1 - result. 
+
+            Equal to 1: The value was not seen before (is not within a non-zero histogram bin), but falls within the range (min to max) of previously seen values. 
+            
+            Larger than 1: The value has not been seen before and differs result * 100% from the previously seen range (max - min)
+    """
 
     z = float(args[0])
 
