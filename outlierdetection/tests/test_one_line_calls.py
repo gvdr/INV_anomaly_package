@@ -50,6 +50,41 @@ def test_clear_peak():
     assert result_responses
 
 
+def test_clear_peak_OSKAR():
+
+    df = pd.read_csv(TEST_DIR + '/data/OSKAR_data_with_clear_peak.csv')
+    
+    df['dt_date'] = pd.to_datetime(df['dt_date'])
+
+    df = df.drop(['vl_sigma', 'co_type'], axis=1)
+
+    #The clear peak is at 2022-10-31 14:00:00
+    df = df.loc[df['dt_date'] <= pd.to_datetime('2022-10-31 14:00:00')]
+
+    df = df.set_index('dt_date')
+
+
+    df = df.squeeze() # convert df to series
+
+    # insert some NaNs into the training data to check whether this is handled
+    df.iloc[10:13] = np.nan
+
+
+    ts = df.to_list()
+    ts_dates = df.index.to_list()
+
+    isOutlier, max_strength, message_detail, result_responses = UOD.process_last_point(ts, ts_dates)
+
+    print(max_strength)
+    print(message_detail)
+    print(result_responses)
+
+
+    assert isOutlier == True, "Clear extremal value outlier not detected by process_last_point(ts, ts_dates). Daily data from OSKAR."
+    assert message_detail
+    assert result_responses
+
+
 def test_seasonal_outlier():
 
     df = pd.read_csv(TEST_DIR + '/data/NAB/data/artificialWithAnomaly/art_daily_nojump.csv')
