@@ -798,6 +798,7 @@ class UnivariateOutlierDetection:
         """
 
         self.ClearDetectors()
+
         # find most often occurring time difference in nanoseconds and store in time_diff_ns
         time_differences_ns = np.diff(self.series.index).astype(int)
         unique, counts = np.unique(time_differences_ns, return_counts=True)
@@ -817,19 +818,18 @@ class UnivariateOutlierDetection:
         #print(f"Time difference: {time_diff_min} minutes")
 
         min_per_hour = 60
-
         min_per_day = 24 * 60
-
         min_per_week = 24 * 60 * 7
-
         min_per_month = 24 * 60 * 30.5
-
         min_per_year = 24 * 60 * 365
 
         num_data = len(self.series)
 
+        # list of all lengths over which we want to average
         average_length = []
 
+        # seasonality that we want to subtract
+        # we generally use the longest possible season to subtract, possibly afterwards subtracting shorter seasonalities
         season = None
 
         # Numenta type data with frequency of about 5 minutes
@@ -898,16 +898,20 @@ class UnivariateOutlierDetection:
         self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
 
         # Add average detectors:
-
         for a in average_length:
             self.AddDetector(['STD', [1], [['average', [a]]], sigma_STD])
             self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
 
 
+
+        # Set up seasonality decomposition
+
+        # We average the computed seasonality of period period over average_period so that too fine grained noise is removed. 
+        # we may later in addition subtract seasonality of a finer scale to compensate. 
         average_period = int(season/10)
 
+        # seasonality_type = 'additive' or 'multiplicative' ?
         has_negatives = self.series.le(0).any()
-
         if has_negatives:
             seasonality_type = 'additive'
         else:
@@ -937,8 +941,13 @@ class UnivariateOutlierDetection:
                 average_period = 1
                 self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]]], sigma_STD])
                 self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, seasonality_type]]], 1.0 + deviation_PRE])
+                # For weekly seasonality, we additionally look at the restriction of training data to the last month
                 if season == 168 and time_diff_min == 60:
                     self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]], ['restrict_data_to', [168 * 4, detector_window_length]]], sigma_STD])
+                    # Additional detector that subtracts seasonality fist with weekly period, then daily period  
+                    # This detector gave similar results to the standard [168,1] subtract, so we leave it out for now. 
+                    #self.AddDetector(['STD', [1], [['season_subtract', [168, 24, seasonality_type]], ['season_subtract', [24, 1, seasonality_type]]], sigma_STD])
+
 
             
 
