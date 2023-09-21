@@ -498,7 +498,7 @@ class UnivariateOutlierDetection:
             if type == 'PRE':
                 val = np.abs(val)
                 types = self.GetOutlierTypes(preprocessor)
-                if val >= 1.0 + threshold:
+                if val >= threshold:
                     
                     message_detail.append(f"{types}: a value this extreme was never seen before. It deviates by at least {((val-1.0)*100):.0f}% from the previously seen value range. ")
                     isOutlier = True
@@ -933,8 +933,8 @@ class UnivariateOutlierDetection:
                 average_period = 1
                 self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]]], sigma_STD])
                 self.AddDetector(['PRE', [10], [['season_subtract', [season, average_period, seasonality_type]]], 1.0 + deviation_PRE])
-            
-                    
+                if season == 168 and time_diff_min == 60:
+                    self.AddDetector(['STD', [1], [['season_subtract', [season, average_period, seasonality_type]], ['restrict_data_to', [168 * 4, detector_window_length]]], sigma_STD])
 
             
 
