@@ -822,7 +822,7 @@ class UnivariateOutlierDetection:
 
         min_per_week = 24 * 60 * 7
 
-        min_per_month = 24 * 60 * 7 * 30.5
+        min_per_month = 24 * 60 * 30.5
 
         min_per_year = 24 * 60 * 365
 
@@ -832,7 +832,7 @@ class UnivariateOutlierDetection:
 
         season = None
 
-
+        # Numenta type data with frequency of about 5 minutes
         if time_diff_min < 60:
             # average over hour
             if num_data >= periods_necessary_for_average * min_per_hour / time_diff_min:
@@ -857,10 +857,14 @@ class UnivariateOutlierDetection:
             if num_data >= periods_necessary_for_average * min_per_week / time_diff_min:
                 #average_length.append(int(min_per_week / time_diff_min))
                 season = int(min_per_week / time_diff_min)
+            
+            # monthly seasonality performs poorly due to the irregular intervals and beginnings of months being not so important. 
+            # Weekly is better. 
+            
             # average over month
-            if num_data >= periods_necessary_for_average * min_per_month / time_diff_min:
+            #if num_data >= periods_necessary_for_average * min_per_month / time_diff_min:
                 #average_length.append(int(min_per_month / time_diff_min))
-                season = int(min_per_month / time_diff_min)
+                #season = int(min_per_month / time_diff_min)
 
         # INVTEREST type daily data
         if time_diff_min == 24 * 60:
