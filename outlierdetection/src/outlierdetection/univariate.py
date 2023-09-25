@@ -127,7 +127,7 @@ class UnivariateOutlierDetection:
     from .univariate_IF import IF
     from .univariate_PRO import PRO
     from .univariate_PRE import PRE
-    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to, pp_ARIMA_subtract
+    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to, pp_ARIMA_subtract, pp_difference_until_stationary
     
 
     # series has to have an index in pandas datetime format
@@ -332,6 +332,7 @@ class UnivariateOutlierDetection:
         seasonal_period = -1
         restrict = False
         restrict_period = 0
+        ARIMA = False
 
         for p in preprocessor:
             type = p[0]
@@ -344,7 +345,9 @@ class UnivariateOutlierDetection:
             if type == 'restrict_data_to':
                 restrict = True
                 restrict_period += p[1][0]
-
+            if type == 'ARIMA_subtract':
+                ARIMA = True
+                ARIMA_param = f"[{p[1][0]},{p[1][1]},{p[1][2]}]"
 
         answer = ""
 
@@ -352,11 +355,14 @@ class UnivariateOutlierDetection:
             answer += f" seasonal ({seasonal_period})"
         if density:
             answer += f" density ({average_period})"
+        if ARIMA:
+            answer += f" ARIMA ({ARIMA_param})"
         answer += " outlier"
         if restrict:
             answer += f" with comparison window restricted to last {restrict_period} datapoints"
 
-        answer = answer[1:].capitalize()
+        if answer.lstrip().islower():
+            answer = answer[1:].capitalize()
 
         return answer
     
@@ -530,18 +536,6 @@ class UnivariateOutlierDetection:
                     isOutlierCurrent = True
 
 
-        if isOutlier:
-            if self.IsOutlierCluster(previous_outliers):
-
-                time_diff_ns = self.GetTimeStep()
-
-                steps = len(previous_outliers)+1
-
-                outlier_window_size_str = str(timedelta(microseconds = (steps) * time_diff_ns / 1000 ))
-
-                message_detail.append(f'The outlier appears to be part of an outlier cluster. (Tested in a window of size {outlier_window_size_str} (= {steps} time steps) ending here.)')
-
-
             current_response.append(val)
             current_response.append(type)
             current_response.append([args, preprocessor, threshold])
@@ -567,6 +561,20 @@ class UnivariateOutlierDetection:
             } 
 
             detector_responses.append(current_response_dic)
+
+
+
+        if isOutlier:
+            if self.IsOutlierCluster(previous_outliers):
+
+                time_diff_ns = self.GetTimeStep()
+
+                steps = len(previous_outliers)+1
+
+                outlier_window_size_str = str(timedelta(microseconds = (steps) * time_diff_ns / 1000 ))
+
+                message_detail.append(f'The outlier appears to be part of an outlier cluster. (Tested in a window of size {outlier_window_size_str} (= {steps} time steps) ending here.)')
+
 
         #if type_seasonal and type_density:
         #    high_level_description = "Seasonal / density outlier"
@@ -897,7 +905,7 @@ class UnivariateOutlierDetection:
         self.AddDetector(['STD', [1], [], sigma_STD])
         self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
 
-        self.AddDetector(['STD', [1], [['ARIMA_subtract', ['pacf', 0, -3]]], sigma_STD * 0.75])
+        self.AddDetector(['STD', [1], [['ARIMA_subtract', ['pacf', 'stat', -3]]], sigma_STD * 0.75])
 
 
 

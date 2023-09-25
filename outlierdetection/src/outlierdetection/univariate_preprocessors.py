@@ -11,6 +11,7 @@ import numpy as np
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import pacf
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import adfuller
 
 from sklearn.metrics import mean_squared_error
 
@@ -493,8 +494,22 @@ def pp_ARIMA_subtract(self, processed_series, args):
     critical_error = False       
     add_skip = 0 
     imputed_series = processed_series.copy() 
-           
+    counter = 0     
     try:
+        
+        if args[1] == 'stat':
+            imputed_series, critical_error, add_skip_diff, counter  = self.pp_difference_until_stationary(imputed_series, args=[0, 0.05])
+            add_skip += add_skip_diff
+        else: 
+            d = int(args[1])
+            if d > 0:
+                for _ in range(d):
+                    imputed_series = imputed_series - imputed_series.shift(1)
+                    add_skip += 1
+                    counter += 1
+
+        #print(add_skip)
+
         #print(args)
         if args[0] == 'pacf':
             use_pacf = True
@@ -523,7 +538,7 @@ def pp_ARIMA_subtract(self, processed_series, args):
         if use_pacf:
             max_lags = min(10, int(len(self.series) / 2))
             crit_val = 0.05
-            _, conf = pacf(self.series, alpha=0.01, nlags = max_lags)
+            _, conf = pacf(imputed_series, alpha=0.01, nlags = max_lags)
             p = 0
             while(p < max_lags):
                 if conf[p+1][0] < crit_val:
@@ -532,27 +547,37 @@ def pp_ARIMA_subtract(self, processed_series, args):
                     p += 1
             p_range = [p]
 
-        best_order = (0, 0, 0)
+        best_order = [0, 0, 0]
         best_fit = None
         best_aic = None
+        best_model = None
         for p in p_range:
             for q in q_range:
-                order = (p,0,q)
+                order = [p,0,q]
                 warnings.filterwarnings("ignore")
-                model = ARIMA(self.series, order=order).fit()
+                model = ARIMA(imputed_series, order=order).fit()
                 predictions = model.fittedvalues
-                error = mean_squared_error(self.series, predictions)
+                error = mean_squared_error(imputed_series, predictions)
                 if best_aic == None:
                     best_aic = model.aic
                     best_order = order
                     best_fit = predictions
+                    best_model = model
                 else:
                     if model.aic * error < best_aic:
                         best_aic = model.aic * error
                         best_order = order
                         best_fit = predictions
+                        best_model = model
 
-        
+        best_order[1] = counter
+
+        print(f"Best ARIMA order estimated as {best_order}.")
+        print(best_model.specification)
+        print("AR:")
+        print(best_model.polynomial_ar)
+        print("MA:")
+        print(best_model.polynomial_ma)
 
         imputed_series -= best_fit
 
@@ -563,3 +588,57 @@ def pp_ARIMA_subtract(self, processed_series, args):
         print("An exception occurred during pp_ARIMA_subtract:" + str(e))
         critical_error = True
     return imputed_series, critical_error, add_skip  
+
+
+def pp_difference_until_stationary(self, processed_series, args=[0, 0.05]):
+    """
+    Difference time series until stationary
+     
+    Skips a number of time steps from the beginning of the series via adding its argument to the skip counter
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            >0 Difference at most args[0]
+            =0 difference until stationary, arbitrarily many times
+        args[1] : float
+            critical ADF p-value under which stationarity is concluded 
+   
+            
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    counter : number of differentiations performed
+    """
+
+    critical_error = False     
+    add_skip = 0  
+    try:
+        max_difference = args[0]
+        threshold = args[1]
+        counter = 0
+        adf_pvalue = adfuller(processed_series.dropna())[1]
+        #print(adf_pvalue)
+        #print(threshold)
+        while(adf_pvalue >= threshold):
+            print(f"Series not stationary. ADF =  {adf_pvalue} > {threshold}. Differencing. ")
+            processed_series = processed_series - processed_series.shift(1)
+            add_skip += 1
+            counter += 1
+            if max_difference == counter:
+                break
+            adf_pvalue = adfuller(processed_series.dropna())[1]
+         
+    except Exception as e:
+        print("An exception occurred during pp_difference_until_stationary:" + str(e))
+        critical_error = True
+    return processed_series, critical_error, add_skip, counter
+
