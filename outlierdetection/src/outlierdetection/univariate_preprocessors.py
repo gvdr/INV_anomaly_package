@@ -7,7 +7,14 @@ Contains the definition of preprocessors that can be applied to the time series 
 
 import pandas as pd
 import numpy as np
+
 from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.stattools import pacf
+from statsmodels.tsa.arima.model import ARIMA
+
+from sklearn.metrics import mean_squared_error
+
+import warnings
 
 
 def pp_average(self, processed_series, args):
@@ -453,3 +460,106 @@ def pp_restrict_data_to(self, processed_series, args=[]):
         print("An exception occurred during pp_restrict_data_to:" + str(e))
         critical_error = True
     return processed_series, critical_error, add_skip
+
+
+def pp_ARIMA_subtract(self, processed_series, args):
+    """
+    Subtracting ARIMA
+     
+    Subtracts a specified or estimated ARIMA model from the time series. 
+
+    Parameters
+    ----------
+    processed_series : pd.Series with datetime index
+        Time series to be processed
+    args : list
+        args[0] : int
+            Peroid over which the seasonality is computed. 
+        args[1] : int
+            Seasonality is smoothed up this scale, i.e. neglected below the scale. 
+        args[2] = str
+            Seasonality type, either 'multiplicative' or 'additive. Time series values need to be >0 for multiplicative. 
+
+    Returns
+    -------
+    processed_series : pd.Series with datetime index
+        Processed series
+    critical_error : bool
+        Did a critical error occur during preprocessing?
+    add_skip : int
+        How many time steps should be skipped from the beginning of the series due to the preprocessing
+    """
+     
+    critical_error = False       
+    add_skip = 0 
+    imputed_series = processed_series.copy() 
+           
+    try:
+        #print(args)
+        if args[0] == 'pacf':
+            use_pacf = True
+        else: 
+            use_pacf = False
+            p_arg = int(args[0])
+            if p_arg >= 0:
+                p_range = [p_arg]
+            elif p_arg < 0:
+                p_range = np.arange(int(-1 * p_arg))
+        
+        if args[1] != 0:
+            # difference until 
+            pass
+
+        q_arg = int(args[2])
+        if q_arg >= 0:
+            q_range = [q_arg]
+        elif q_arg < 0:
+            q_range = np.arange(int(-1 * q_arg))
+
+        nans = np.where(processed_series.isnull())
+
+        imputed_series, _, _ = self.pp_fillna_linear(processed_series)
+
+        if use_pacf:
+            max_lags = min(10, int(len(self.series) / 2))
+            crit_val = 0.05
+            _, conf = pacf(self.series, alpha=0.01, nlags = max_lags)
+            p = 0
+            while(p < max_lags):
+                if conf[p+1][0] < crit_val:
+                    break
+                else:
+                    p += 1
+            p_range = [p]
+
+        best_order = (0, 0, 0)
+        best_fit = None
+        best_aic = None
+        for p in p_range:
+            for q in q_range:
+                order = (p,0,q)
+                warnings.filterwarnings("ignore")
+                model = ARIMA(self.series, order=order).fit()
+                predictions = model.fittedvalues
+                error = mean_squared_error(self.series, predictions)
+                if best_aic == None:
+                    best_aic = model.aic
+                    best_order = order
+                    best_fit = predictions
+                else:
+                    if model.aic * error < best_aic:
+                        best_aic = model.aic * error
+                        best_order = order
+                        best_fit = predictions
+
+        
+
+        imputed_series -= best_fit
+
+        if nans:
+            imputed_series.iloc[nans] = np.nan
+        #print(imputed_series)
+    except Exception as e:
+        print("An exception occurred during pp_ARIMA_subtract:" + str(e))
+        critical_error = True
+    return imputed_series, critical_error, add_skip  

@@ -127,7 +127,7 @@ class UnivariateOutlierDetection:
     from .univariate_IF import IF
     from .univariate_PRO import PRO
     from .univariate_PRE import PRE
-    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to
+    from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to, pp_ARIMA_subtract
     
 
     # series has to have an index in pandas datetime format
@@ -896,6 +896,11 @@ class UnivariateOutlierDetection:
         # Standard detectors
         self.AddDetector(['STD', [1], [], sigma_STD])
         self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
+
+        self.AddDetector(['STD', [1], [['ARIMA_subtract', ['pacf', 0, -3]]], sigma_STD * 0.75])
+
+
+
 
         # Add average detectors:
         for a in average_length:
