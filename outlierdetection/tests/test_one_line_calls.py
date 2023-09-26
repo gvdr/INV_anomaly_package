@@ -177,3 +177,36 @@ def test_ARIMA_outlier():
     assert ARIMA_detected, "No ARIMA detector identified an outlier. The above detection must have been by another type of detector."
     assert message_detail
     assert result_responses
+
+
+
+def test_seasonal_ARIMA_outlier():
+    df = pd.read_csv(TEST_DIR + '/data/ARIMA(1,0,0)_with_point_outliers_with_seasonality_1_series.csv')
+
+    df['dates'] = pd.to_datetime(df['dates'])
+    df = df.set_index('dates')
+
+    df = df.loc[:pd.to_datetime('2002-06-10 00:00:00'), :] # this value is a clear seasonal ARIMA anomaly that is not a value outlier, nor an ARIMA outlier, nor a seasonal outlier, as the seasonality is important here in conjunction with ARIMA
+
+
+
+    ts = df.loc[:, 'value'].to_list()
+    ts_dates = df.index.to_list()
+
+    isOutlier, max_strength, message_detail, result_responses = UOD.process_last_point_with_window(ts, ts_dates, window_size = 10)
+
+    seasonal_ARIMA_detected = False
+    for m in message_detail:
+        if 'ARIMA' in m and 'Seasonal' in m:
+            seasonal_ARIMA_detected = True
+
+
+    print(max_strength)
+    print(message_detail)
+    print(result_responses)
+
+
+    assert isOutlier == True, "Clear seasonal ARIMA outlier not detected by process_last_point(ts, ts_dates)."
+    assert seasonal_ARIMA_detected, "No seasonal ARIMA detector identified an outlier. The above detection must have been by another type of detector."
+    assert message_detail
+    assert result_responses
