@@ -580,7 +580,11 @@ def pp_ARIMA_subtract(self, processed_series, args):
 
         best_order[1] = counter
 
-        def print_ARIMA_result_formatted(best_order, best_model):
+        R2 = 1 - (imputed_series - best_fit).var() / imputed_series.var()
+
+        
+
+        def print_ARIMA_result_formatted(best_order, best_model, R2):
             print("----- ARIMA estimation ------")
             print(f"Best ARIMA order estimated as {best_order}.")
             print(best_model.specification)
@@ -596,9 +600,16 @@ def pp_ARIMA_subtract(self, processed_series, args):
             if ma_list:
                 ma_list = ["%.3f" % elem for elem in ma_list]
                 print(f"MA: {', '.join(ma_list)}")
+            print(f"R2 value: {R2:0.3f}")
             print("-----------------------------")
 
-        print_ARIMA_result_formatted(best_order, best_model)
+        print_ARIMA_result_formatted(best_order, best_model, R2)
+
+
+        crit_R2 = 0.1
+        if R2 < crit_R2:
+            raise Exception(f"R2 value of ARIMA model is below critical value {crit_R2}.")
+            critical_error = True
 
         #print(best_model.specification)
         #print("AR:")
