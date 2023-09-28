@@ -545,11 +545,18 @@ def pp_ARIMA_subtract(self, processed_series, args):
                     break
                 else:
                     p += 1
-            p_range = [p]
+            if p == 0:
+                p_range = [0,1]
+            else:
+                p_range = [p] # require at least 1 AR term to test 
+
+
+        def error_metric(model, error):
+            return model.aic * error # custom error metric that seems somewhat better than just simple AIC
 
         best_order = [0, 0, 0]
         best_fit = None
-        best_aic = None
+        best_metric = None
         best_model = None
         for p in p_range:
             for q in q_range:
@@ -558,26 +565,46 @@ def pp_ARIMA_subtract(self, processed_series, args):
                 model = ARIMA(imputed_series, order=order).fit()
                 predictions = model.fittedvalues
                 error = mean_squared_error(imputed_series, predictions)
-                if best_aic == None:
-                    best_aic = model.aic
+                #print(order)
+                if best_metric == None:
+                    best_metric = error_metric(model,  error)
                     best_order = order
                     best_fit = predictions
                     best_model = model
                 else:
-                    if model.aic * error < best_aic:
-                        best_aic = model.aic * error
+                    if error_metric(model,  error) < best_metric:
+                        best_metric = error_metric(model,  error)
                         best_order = order
                         best_fit = predictions
                         best_model = model
 
         best_order[1] = counter
 
-        print(f"Best ARIMA order estimated as {best_order}.")
-        print(best_model.specification)
-        print("AR:")
-        print(best_model.polynomial_ar)
-        print("MA:")
-        print(best_model.polynomial_ma)
+        def print_ARIMA_result_formatted(best_order, best_model):
+            print("----- ARIMA estimation ------")
+            print(f"Best ARIMA order estimated as {best_order}.")
+            print(best_model.specification)
+            ar_list = []
+            ma_list = []
+            for arc in best_model.polynomial_ar[1:]:
+                ar_list.append( - arc)
+            for mac in best_model.polynomial_ma[1:]:
+                ma_list.append( - mac)
+            if ar_list:
+                ar_list = ["%.3f" % elem for elem in ar_list]
+                print(f"AR: {', '.join(ar_list)}")
+            if ma_list:
+                ma_list = ["%.3f" % elem for elem in ma_list]
+                print(f"MA: {', '.join(ma_list)}")
+            print("-----------------------------")
+
+        print_ARIMA_result_formatted(best_order, best_model)
+
+        #print(best_model.specification)
+        #print("AR:")
+        #print(best_model.polynomial_ar)
+        #print("MA:")
+        #print(best_model.polynomial_ma)
 
         imputed_series -= best_fit
 
