@@ -50,7 +50,7 @@ def pp_average(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_average: " + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip
+    return processed_series, critical_error, add_skip, []
 
 
 def pp_power(self, processed_series, args):
@@ -84,7 +84,7 @@ def pp_power(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_power:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip                    
+    return processed_series, critical_error, add_skip, []                    
 
 
 def pp_median(self, processed_series, args):
@@ -120,7 +120,7 @@ def pp_median(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_median:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip   
+    return processed_series, critical_error, add_skip, []   
 
 
 def pp_volatility(self, processed_series, args):
@@ -159,7 +159,7 @@ def pp_volatility(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_volatility:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip   
+    return processed_series, critical_error, add_skip, []   
 
 
 def pp_difference(self, processed_series, args):
@@ -194,7 +194,7 @@ def pp_difference(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_difference:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip   
+    return processed_series, critical_error, add_skip, []   
 
       
 def pp_season_subtract(self, processed_series, args):
@@ -235,7 +235,7 @@ def pp_season_subtract(self, processed_series, args):
         type = str(args[2])
         nans = np.where(processed_series.isnull())
         #print(nans)
-        imputed_series, _, _ = self.pp_fillna_linear(processed_series)
+        imputed_series, _, _, _ = self.pp_fillna_linear(processed_series)
         seasonal_result = seasonal_decompose(imputed_series, model=type, period=period).seasonal
         if average_period > 1:
             seasonal_result = seasonal_result.rolling(average_period, min_periods = 3, center=True).mean()
@@ -249,7 +249,7 @@ def pp_season_subtract(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_season_subtract:" + str(e))
         critical_error = True
-    return imputed_series, critical_error, add_skip  
+    return imputed_series, critical_error, add_skip, []  
 
 
 def pp_fillna_linear(self, processed_series, args=[]):
@@ -288,7 +288,7 @@ def pp_fillna_linear(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_fillna_linear:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip
+    return processed_series, critical_error, add_skip, []
 
 
 def pp_get_resid(self, processed_series, args=[]):
@@ -322,7 +322,7 @@ def pp_get_resid(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_resid:" + str(e))
         critical_error = True
-    return self.resid, critical_error, add_skip
+    return self.resid, critical_error, add_skip, []
 
 
 def pp_get_trend(self, processed_series, args=[]):
@@ -356,7 +356,7 @@ def pp_get_trend(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_trend:" + str(e))
         critical_error = True
-    return self.trend, critical_error, add_skip
+    return self.trend, critical_error, add_skip, []
 
 
 def pp_get_trend_plus_resid(self, processed_series, args=[]):
@@ -390,7 +390,7 @@ def pp_get_trend_plus_resid(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_trend_plus_resid:" + str(e))
         critical_error = True
-    return self.trend + self.resid, critical_error, add_skip
+    return self.trend + self.resid, critical_error, add_skip, []
 
 
 def pp_skip_from_beginning(self, processed_series, args=[0]):
@@ -424,7 +424,7 @@ def pp_skip_from_beginning(self, processed_series, args=[0]):
     except Exception as e:
         print("An exception occurred during pp_skip_from_beginning:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip
+    return processed_series, critical_error, add_skip, []
 
 def pp_restrict_data_to(self, processed_series, args=[]):
     """
@@ -460,7 +460,7 @@ def pp_restrict_data_to(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_restrict_data_to:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip
+    return processed_series, critical_error, add_skip, []
 
 
 def pp_ARIMA_subtract(self, processed_series, args):
@@ -498,7 +498,8 @@ def pp_ARIMA_subtract(self, processed_series, args):
     try:
         
         if args[1] == 'stat':
-            imputed_series, critical_error, add_skip_diff, counter  = self.pp_difference_until_stationary(imputed_series, args=[0, 0.05])
+            imputed_series, critical_error, add_skip_diff, return_dict  = self.pp_difference_until_stationary(imputed_series, args=[0, 0.05])
+            counter = return_dict['counter']
             add_skip += add_skip_diff
         else: 
             d = int(args[1])
@@ -533,7 +534,7 @@ def pp_ARIMA_subtract(self, processed_series, args):
 
         nans = np.where(processed_series.isnull())
 
-        imputed_series, _, _ = self.pp_fillna_linear(processed_series)
+        imputed_series, _, _, _ = self.pp_fillna_linear(processed_series)
 
         if use_pacf:
             max_lags = min(10, int(len(self.series) / 2))
@@ -625,7 +626,7 @@ def pp_ARIMA_subtract(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_ARIMA_subtract:" + str(e))
         critical_error = True
-    return imputed_series, critical_error, add_skip  
+    return imputed_series, critical_error, add_skip, dict({'pp_type': 'ARIMA_subtract', 'pdq': best_order})  
 
 
 def pp_difference_until_stationary(self, processed_series, args=[0, 0.05]):
@@ -657,7 +658,7 @@ def pp_difference_until_stationary(self, processed_series, args=[0, 0.05]):
     counter : number of differentiations performed
     """
 
-    critical_error = False     
+    critical_error = False   
     add_skip = 0  
     try:
         max_difference = args[0]
@@ -678,5 +679,5 @@ def pp_difference_until_stationary(self, processed_series, args=[0, 0.05]):
     except Exception as e:
         print("An exception occurred during pp_difference_until_stationary:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, counter
+    return processed_series, critical_error, add_skip, dict({'pp_type': 'difference_until_stationary', 'counter': counter})
 

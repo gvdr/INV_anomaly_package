@@ -164,7 +164,7 @@ class UnivariateOutlierDetection:
         self.trend = None
         self.resid = None
 
-        
+        self.preprocessor_returns = dict()
 
         nans = series.isna() 
         nan_times = nans[nans==True].index.to_list()
@@ -484,45 +484,59 @@ class UnivariateOutlierDetection:
 
             column = "D_" + str(ID)
 
-            
-            val = scores[column]
+            #print(f"Processing detector {column}. Return list: {self.preprocessor_returns[column]}")
 
-            if type == "STD":
-                max_level_STD = max(max_level_STD, np.abs(val))
-            if type == "PRE":
-                max_level_PRE = max(max_level_PRE, np.abs(val))
 
-            #full_name = type + "_" + "".join(str(e) for e in args) + "_" + "".join(str(e) for e in preprocessor) + "_" + str(threshold)
+            deactivate_detector_for_score = False
+            for e in self.preprocessor_returns[column]:
+                if e['pp_type'] == 'ARIMA_subtract':
+                    max_lag = max(e['pdq'])
+                    #print(max_lag)
+                    if sum(previous_outliers[-max_lag:]) > 0:
+                        deactivate_detector_for_score = True
 
-            if type == 'PRE':
-                val = np.abs(val)
-                types = self.GetOutlierTypes(preprocessor)
-                if val >= threshold:
-                    
-                    message_detail.append(f"{types}: a value this extreme was never seen before. It deviates by at least {((val-1.0)*100):.0f}% from the previously seen value range. ")
-                    isOutlier = True
-                    isOutlierCurrent = True
-                if val == 1:
-                    message_detail.append(f"{types}: a similar value has never been observed before, but it is within the previously observed data range. ")
-                    isOutlier = True
-                    isOutlierCurrent = True
+            if deactivate_detector_for_score:
+                val = np.nan
+                #print("detector deactivated")
+            else:
+                val = scores[column]
 
-            if type == 'STD':
-                val = np.abs(val)
-                if val >= threshold:
-                    isOutlier = True
-                    isOutlierCurrent = True
-                    m = []
+                if type == "STD":
+                    max_level_STD = max(max_level_STD, np.abs(val))
+                if type == "PRE":
+                    max_level_PRE = max(max_level_PRE, np.abs(val))
+
+                #full_name = type + "_" + "".join(str(e) for e in args) + "_" + "".join(str(e) for e in preprocessor) + "_" + str(threshold)
+
+                if type == 'PRE':
+                    val = np.abs(val)
                     types = self.GetOutlierTypes(preprocessor)
-                    m.append(f"{types} detected: {val:.1f} sigma. ")
-                    message_detail.append(' '.join(m))
-        
-            if type == 'PRO':
-                val = np.abs(val)
-                if val >= threshold:
-                    message_detail.append(f"Contextual outlier (via Prophet) detected with strength {val:.1f}. ")
-                    isOutlier = True
-                    isOutlierCurrent = True
+                    if val >= threshold:
+                        
+                        message_detail.append(f"{types}: a value this extreme was never seen before. It deviates by at least {((val-1.0)*100):.0f}% from the previously seen value range. ")
+                        isOutlier = True
+                        isOutlierCurrent = True
+                    if val == 1:
+                        message_detail.append(f"{types}: a similar value has never been observed before, but it is within the previously observed data range. ")
+                        isOutlier = True
+                        isOutlierCurrent = True
+
+                if type == 'STD':
+                    val = np.abs(val)
+                    if val >= threshold:
+                        isOutlier = True
+                        isOutlierCurrent = True
+                        m = []
+                        types = self.GetOutlierTypes(preprocessor)
+                        m.append(f"{types} detected: {val:.1f} sigma. ")
+                        message_detail.append(' '.join(m))
+            
+                if type == 'PRO':
+                    val = np.abs(val)
+                    if val >= threshold:
+                        message_detail.append(f"Contextual outlier (via Prophet) detected with strength {val:.1f}. ")
+                        isOutlier = True
+                        isOutlierCurrent = True
 
 
             current_response.append(val)
@@ -630,6 +644,8 @@ class UnivariateOutlierDetection:
             name += "]"
 
             name = "D_" + str(detector_tuple[5])
+
+            preprocessor_return_list = []
             
             if perform_detection:
                 if preprocessor:
@@ -640,7 +656,10 @@ class UnivariateOutlierDetection:
                         pp_type = p[0]
                         pp_args = p[1]
                         pp_func = getattr(self, 'pp_' + pp_type)
-                        processed_series, critical_error, add_skip = pp_func(processed_series, pp_args)
+                        processed_series, critical_error, add_skip, pp_return = pp_func(processed_series, pp_args)
+
+                        if pp_return:
+                            preprocessor_return_list.append(pp_return)
 
                         skip += add_skip
                         if critical_error:
@@ -662,6 +681,10 @@ class UnivariateOutlierDetection:
                     result[name] = detector(self.series, training, test, arguments)
             else:
                 result[name] = np.nan
+
+            self.preprocessor_returns.update({name : preprocessor_return_list})
+            #print(self.preprocessor_returns)
+
 
         return result
 
@@ -719,7 +742,7 @@ class UnivariateOutlierDetection:
         if self.series.isnull().values.any():
             nans = np.where(self.series.isnull())
 
-        deseasoned, _, _ = self.pp_season_subtract(self.series, [period, average_period, type])
+        deseasoned, _, _, _ = self.pp_season_subtract(self.series, [period, average_period, type])
 
         if nans:
             deseasoned.iloc[nans] = np.nan
@@ -788,6 +811,14 @@ class UnivariateOutlierDetection:
         #min_per_year = 24 * 60 * 365
 
         num_data = len(self.series)
+
+
+        # Is base series stationary?
+
+        _, _, _, counter_dict = self.pp_difference_until_stationary(self.series)
+        if counter_dict['counter'] > 0:
+            stationary = False
+        else: stationary = True
     
         seasonality_candidates = [60, 24*60, 24*60*7, 24*60*365]
 
@@ -806,17 +837,19 @@ class UnivariateOutlierDetection:
                 average_periods.append(int(ac / time_diff_min))
                 break
 
+        if stationary:
+            # Standard detectors
+            self.AddDetector(['STD', [1], [], sigma_STD])
+            self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
+            for a in average_periods:
+                self.AddDetector(['STD', [1], [['average', [a]]], sigma_STD])
+                self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
 
-        # Standard detectors
-        self.AddDetector(['STD', [1], [], sigma_STD])
-        self.AddDetector(['PRE', [10], [], 1.0 + deviation_PRE])
-        self.AddDetector(['STD', [1], [['ARIMA_subtract', ['pacf', 'stat', -3]]], sigma_STD * 0.75])
+
 
 
         # Add average detectors:
-        for a in average_periods:
-            self.AddDetector(['STD', [1], [['average', [a]]], sigma_STD])
-            self.AddDetector(['PRE', [10], [['average', [a]]], 1.0 + deviation_PRE])
+        
 
 
 
@@ -856,6 +889,10 @@ class UnivariateOutlierDetection:
             self.AddDetector(['STD', [1], [preprocessor], sigma_STD])
             self.AddDetector(['PRE', [10], [preprocessor], 1.0 + deviation_PRE])
             self.AddDetector(['STD', [1], [preprocessor, ['ARIMA_subtract', ['pacf', 'stat', -3]]], sigma_STD - 1])
+
+        if not seasonality_preprocessors:
+            self.AddDetector(['STD', [1], [['ARIMA_subtract', ['pacf', 'stat', -3]]], sigma_STD * 0.75])
+
 
 
 
