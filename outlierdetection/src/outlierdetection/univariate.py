@@ -125,7 +125,7 @@ class UnivariateOutlierDetection:
     # imported outlier detection methods
     from .univariate_STD import STD
     from .univariate_IF import IF
-    from .univariate_PRO import PRO
+    #from .univariate_PRO import PRO
     from .univariate_PRE import PRE
     from .univariate_preprocessors import pp_average, pp_power, pp_median, pp_volatility, pp_difference, pp_season_subtract, pp_fillna_linear, pp_get_resid, pp_get_trend, pp_get_trend_plus_resid, pp_skip_from_beginning, pp_restrict_data_to, pp_ARIMA_subtract, pp_difference_until_stationary
     
