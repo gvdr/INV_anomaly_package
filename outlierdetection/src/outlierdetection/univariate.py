@@ -5,7 +5,7 @@ univariate.py
 Contains the definition of the UnivariateOutlierDetection class. 
 """
 
-__version__ = '0.1.0'
+#__version__ = '0.1.0'
 
 # general
 import numpy as np 
@@ -143,6 +143,8 @@ class UnivariateOutlierDetection:
             Values are float and may be np.nan. 
             Duplicate indices are removed, first are kept. 
         """
+
+        print("Update to versino 0.1.1")
 
         self.min_training_data = 5
 
