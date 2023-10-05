@@ -28,7 +28,7 @@ t = UOD.UnivariateOutlierDetection(time_series)
 
 t.ClearDetectors()
 t.AddDetector(['STD', [1], [], 5])
-t.AddDetector(['PRO', [0.95], [], 2])
+#t.AddDetector(['PRO', [0.95], [], 2])
 t.AddDetector(['IF', [0.05], [], None])
 
 
