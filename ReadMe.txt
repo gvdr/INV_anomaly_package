@@ -11,16 +11,32 @@ pip install -r requirements.txt
 
 (For a complete list of required packages (from pip freeze), see requirements.txt)
 
-Then, install the outlier detection package by going to the outlierdetection folder and running
+Then, install the outlier detection package by running in the root folder
 
+pip install outlierdetection --no-index --find-links outlierdetection/dist/
+
+for the latest version, or for a specific version e.g.
+
+pip install outlierdetection==0.1.0 --no-index --find-links outlierdetection/dist/
+
+
+If new versions have been released and the wheels have been pulled to outlierdetection/dist/, upgrade via 
+
+pip install --upgrade outlierdetection --no-index --find-links outlierdetection/dist/
+
+
+
+Alternatively, the package can be installed via
 poetry install
+in the outlierdetection folder. Then however, there is a link to the outlierdetection/src folder in site-packages instead of a physical copy of the package files. 
 
-There should now be a link to outlierdetection/src in the site-packages folder of the virtual environment venv_p3.10 
 
 The package should be importable now as, e.g., 
-
 import outlierdetection.univariate as UOD
 
+
+The currently installed version is accessible via
+pip show outlierdetection
 
 
 automatic tests are available: in folder outlierdetection, run
