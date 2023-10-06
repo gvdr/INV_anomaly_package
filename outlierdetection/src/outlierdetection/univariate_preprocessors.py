@@ -537,7 +537,7 @@ def pp_ARIMA_subtract(self, processed_series, args):
         imputed_series, _, _, _ = self.pp_fillna_linear(processed_series)
 
         if use_pacf:
-            max_lags = min(10, int(len(self.series) / 2))
+            max_lags = min(10, int(len(processed_series) / 2))
             crit_val = 0.05
             _, conf = pacf(imputed_series, alpha=0.01, nlags = max_lags)
             p = 0

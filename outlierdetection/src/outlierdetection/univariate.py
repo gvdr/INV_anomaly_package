@@ -174,6 +174,7 @@ class UnivariateOutlierDetection:
         if len(nan_times) > 0:
             warnings.warn(f"Warning: passed series contains {len(nan_times)} nans:\n{nan_times}\n")
 
+        self.ClearDetectors()
         self.SetStandardDetectors()
 
 
