@@ -39,6 +39,8 @@ def pp_average(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing (here due to boundary effects of the rolling average)
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False
@@ -50,7 +52,7 @@ def pp_average(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_average: " + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []
+    return processed_series, critical_error, add_skip, {}
 
 
 def pp_power(self, processed_series, args):
@@ -74,6 +76,8 @@ def pp_power(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -84,7 +88,7 @@ def pp_power(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_power:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []                    
+    return processed_series, critical_error, add_skip, {}                    
 
 
 def pp_median(self, processed_series, args):
@@ -108,6 +112,8 @@ def pp_median(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -120,7 +126,7 @@ def pp_median(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_median:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []   
+    return processed_series, critical_error, add_skip, {}   
 
 
 def pp_volatility(self, processed_series, args):
@@ -145,6 +151,8 @@ def pp_volatility(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -159,7 +167,7 @@ def pp_volatility(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_volatility:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []   
+    return processed_series, critical_error, add_skip, {}   
 
 
 def pp_difference(self, processed_series, args):
@@ -183,6 +191,8 @@ def pp_difference(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -194,7 +204,7 @@ def pp_difference(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_difference:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []   
+    return processed_series, critical_error, add_skip, {}   
 
       
 def pp_season_subtract(self, processed_series, args):
@@ -223,6 +233,8 @@ def pp_season_subtract(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
      
     critical_error = False       
@@ -249,7 +261,7 @@ def pp_season_subtract(self, processed_series, args):
     except Exception as e:
         print("An exception occurred during pp_season_subtract:" + str(e))
         critical_error = True
-    return imputed_series, critical_error, add_skip, []  
+    return imputed_series, critical_error, add_skip, {}  
 
 
 def pp_fillna_linear(self, processed_series, args=[]):
@@ -274,6 +286,8 @@ def pp_fillna_linear(self, processed_series, args=[]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -288,7 +302,7 @@ def pp_fillna_linear(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_fillna_linear:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []
+    return processed_series, critical_error, add_skip, {}
 
 
 def pp_get_resid(self, processed_series, args=[]):
@@ -312,6 +326,8 @@ def pp_get_resid(self, processed_series, args=[]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -322,7 +338,7 @@ def pp_get_resid(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_resid:" + str(e))
         critical_error = True
-    return self.resid, critical_error, add_skip, []
+    return self.resid, critical_error, add_skip, {}
 
 
 def pp_get_trend(self, processed_series, args=[]):
@@ -346,6 +362,8 @@ def pp_get_trend(self, processed_series, args=[]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -356,7 +374,7 @@ def pp_get_trend(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_trend:" + str(e))
         critical_error = True
-    return self.trend, critical_error, add_skip, []
+    return self.trend, critical_error, add_skip, {}
 
 
 def pp_get_trend_plus_resid(self, processed_series, args=[]):
@@ -380,6 +398,8 @@ def pp_get_trend_plus_resid(self, processed_series, args=[]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -390,7 +410,7 @@ def pp_get_trend_plus_resid(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_get_trend_plus_resid:" + str(e))
         critical_error = True
-    return self.trend + self.resid, critical_error, add_skip, []
+    return self.trend + self.resid, critical_error, add_skip, {}
 
 
 def pp_skip_from_beginning(self, processed_series, args=[0]):
@@ -416,6 +436,8 @@ def pp_skip_from_beginning(self, processed_series, args=[0]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -424,7 +446,7 @@ def pp_skip_from_beginning(self, processed_series, args=[0]):
     except Exception as e:
         print("An exception occurred during pp_skip_from_beginning:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []
+    return processed_series, critical_error, add_skip, {}
 
 def pp_restrict_data_to(self, processed_series, args=[]):
     """
@@ -450,6 +472,8 @@ def pp_restrict_data_to(self, processed_series, args=[]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False       
@@ -460,7 +484,7 @@ def pp_restrict_data_to(self, processed_series, args=[]):
     except Exception as e:
         print("An exception occurred during pp_restrict_data_to:" + str(e))
         critical_error = True
-    return processed_series, critical_error, add_skip, []
+    return processed_series, critical_error, add_skip, {}
 
 
 def pp_ARIMA_subtract(self, processed_series, args):
@@ -489,6 +513,8 @@ def pp_ARIMA_subtract(self, processed_series, args):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
      
     critical_error = False       
@@ -553,7 +579,9 @@ def pp_ARIMA_subtract(self, processed_series, args):
 
 
         def error_metric(model, error):
-            return model.aic * error # custom error metric that seems somewhat better than just simple AIC
+            #return model.aic * error # custom error metric that seems somewhat better than just simple AIC
+            return model.aic # standard Akaike information criterion
+
 
         best_order = [0, 0, 0]
         best_fit = None
@@ -655,7 +683,8 @@ def pp_difference_until_stationary(self, processed_series, args=[0, 0.05]):
         Did a critical error occur during preprocessing?
     add_skip : int
         How many time steps should be skipped from the beginning of the series due to the preprocessing
-    counter : number of differentiations performed
+    preprocessor_return_message : dict
+        Dictionary containing information about the preprocessing, e.g. number of differentiations or estimated ARIMA order. 
     """
 
     critical_error = False   

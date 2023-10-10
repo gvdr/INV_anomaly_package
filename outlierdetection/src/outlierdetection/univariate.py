@@ -20,9 +20,9 @@ from statsmodels.tsa.seasonal import MSTL
 import warnings
 warnings.filterwarnings(action='ignore',category=FutureWarning)
 
-def process_last_point(ts, ts_dates):
+def process_last_point(ts, ts_dates, sigma_STD = 4, deviation_PRE = 0.1, periods_necessary_for_season = 3, average_periods_necessary = 10, detector_window_length = 1, threshold_R2_seasonality = 0.05):
     """
-    One-line call for last point. 
+    One-line call for last point.
 
     Simplest one-line call, takes time series values and dates as lists.
     Training data is the whole time series except the last point. 
@@ -51,13 +51,13 @@ def process_last_point(ts, ts_dates):
     ts_dates = pd.to_datetime(ts_dates)
     ts_panda = pd.Series(index = ts_dates, data = ts)
     OD = UnivariateOutlierDetection(ts_panda)
-    OD.AutomaticallySelectDetectors(detector_window_length=1)
+    OD.AutomaticallySelectDetectors(sigma_STD = sigma_STD, deviation_PRE = deviation_PRE, periods_necessary_for_season = periods_necessary_for_season, average_periods_necessary = average_periods_necessary, detector_window_length = detector_window_length, threshold_R2_seasonality = threshold_R2_seasonality)
     last_point_scores = OD.LastOutlierScore().iloc[0,:]
     result = OD.InterpretPointScore(last_point_scores)
     return result
 
 
-def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_beginning = 0):
+def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_beginning = 0, sigma_STD = 4, deviation_PRE = 0.1, periods_necessary_for_season = 3, average_periods_necessary = 10, detector_window_length = 1, threshold_R2_seasonality = 0.05):
     """
     One-line call for last point including cluster analysis. 
     
@@ -97,7 +97,8 @@ def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_begin
     past = ts_dates[skip_from_beginning:(skip_from_beginning+length_past)]
     future = ts_dates[(skip_from_beginning+length_past):]
 
-    OD.AutomaticallySelectDetectors(detector_window_length = length_future)
+    OD.AutomaticallySelectDetectors(sigma_STD = sigma_STD, deviation_PRE = deviation_PRE, periods_necessary_for_season = periods_necessary_for_season, average_periods_necessary = average_periods_necessary, detector_window_length = length_future, threshold_R2_seasonality = threshold_R2_seasonality)
+
     #OD.PrintDetectors()
 
     # Get outlier true/false for previous points
@@ -143,8 +144,6 @@ class UnivariateOutlierDetection:
             Values are float and may be np.nan. 
             Duplicate indices are removed, first are kept. 
         """
-
-        print("Update to versino 0.1.1")
 
         self.min_training_data = 5
 

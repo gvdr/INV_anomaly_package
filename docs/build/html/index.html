@@ -3,7 +3,7 @@
 <html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Welcome to INV_outlier_package’s documentation! &#8212; INV_outlier_package 0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
@@ -49,15 +49,711 @@ Duplicate indices are removed, first are kept.</p>
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.AddDetector">
+<span class="sig-name descname"><span class="pre">AddDetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_detector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.AddDetector" title="Link to this definition">¶</a></dt>
+<dd><p>Appends a new detector to the list of already existing detectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_detector</strong> (<em>list</em><em>, </em><em>e.g.</em><em> [</em><em>'STD'</em><em>, </em><em>[</em><em>relative_sigma</em><em>]</em><em>, </em><em>[</em><em>[</em><em>'season_subtract'</em><em>, </em><em>[</em><em>season</em><em>, </em><em>average_period</em><em>, </em><em>seasonality_type</em><em>]</em><em>]</em><em>]</em><em>, </em><em>sigma_STD</em><em>]</em>) – <dl class="simple">
+<dt>[0]: string</dt><dd><p>type of the detector, e.g. ‘STD’, ‘PRE’, …</p>
+</dd>
+<dt>[1]: list</dt><dd><p>detector parameters</p>
+</dd>
+<dt>[2]: list</dt><dd><p>series preprocessor directives</p>
+</dd>
+<dt>[3]: float</dt><dd><p>detector threshold</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.AutomaticallySelectDetectors">
+<span class="sig-name descname"><span class="pre">AutomaticallySelectDetectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma_STD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deviation_PRE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periods_necessary_for_season</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_periods_necessary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_R2_seasonality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.AutomaticallySelectDetectors" title="Link to this definition">¶</a></dt>
+<dd><p>Automatically selects a set of detectors fit for the stored time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma_STD</strong> (<em>float</em>) – Threshold for STD based detectors. Outliers occur when the deviation from the training data mean is at least sigma_STD standard deviations.</p></li>
+<li><p><strong>deviation_PRE</strong> (<em>float</em>) – Threshold for PRE based detectors. Outlier will be detected if observed value deviates at least deviation_PRE * 100 % from the previously seen range.</p></li>
+<li><p><strong>periods_necessary_for_season</strong> (<em>int</em>) – At least this many full periods need to be present in the time series in order to apply seasonality modeling.
+Must be at least 2 for statsmodels routines to work.</p></li>
+<li><p><strong>detector_window_length</strong> (<em>int</em>) – Length of the intended testing window w.r.t. time series steps. (E.g. 10 for testing the last 10 points of the series.)</p></li>
+<li><p><strong>threshold_R2_seasonality</strong> (<em>float</em>) – If the R2 value of a seasonal model is at least this value, then the seasonaliy is included in the detector list</p></li>
+<li><p><strong>average_periods_necessary</strong> (<em>int</em>) – This many full average periods need to be present in the data to add a detector with averaging.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.CalculateMSTL">
+<span class="sig-name descname"><span class="pre">CalculateMSTL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">periods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[7,</span> <span class="pre">365]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.CalculateMSTL" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates Season-Trend decomposition using LOESS for multiple seasonalities using MSTL from statsmodels.</p>
+<p>Results are stored in self.trend and self.resid.
+Tends to result in false positives for outliers, pp_season_subtract function tends to be more reliable, use this instead for now.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.ClearDetectors">
+<span class="sig-name descname"><span class="pre">ClearDetectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.ClearDetectors" title="Link to this definition">¶</a></dt>
+<dd><p>Deletes the list of detectors. At least one detector needs to be added afterwards before the outlier detection can be used.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetDetectorNames">
+<span class="sig-name descname"><span class="pre">GetDetectorNames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetDetectorNames" title="Link to this definition">¶</a></dt>
+<dd><p>Get descriptive names of all stored detectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>names</strong> – A list of the full detector names including parameters and preprocessor directives in order in which they are stored.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetOutlierTypes">
+<span class="sig-name descname"><span class="pre">GetOutlierTypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetOutlierTypes" title="Link to this definition">¶</a></dt>
+<dd><p>Create a descriptive string of the outlier type that a detector with the given preprocessor directives would detect.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>preprocessor</strong> (<em>list</em>) – preprocessor directives for a detector</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>answer</strong> – description of outlier type to be used further in creating messages describing the outlier type.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetResid">
+<span class="sig-name descname"><span class="pre">GetResid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetResid" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the residual of the stored time series after CalculateMSTL() has been called.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self.resid</strong> – stored time series residuals</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.Series of floats with datetime index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetResidPlusTrend">
+<span class="sig-name descname"><span class="pre">GetResidPlusTrend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetResidPlusTrend" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the trend plus residual of the stored time series after CalculateMSTL() has been called.</p>
+<p>This is the analogue of using season_subtract on the time series as the missing component is the seasonality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self.resid + self.trend</strong> – stored time series trend + residual</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.Series of floats with datetime index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetSeries">
 <span class="sig-name descname"><span class="pre">GetSeries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetSeries" title="Link to this definition">¶</a></dt>
 <dd><p>Returns the stored time series.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self.series</strong> – pd.Series stored.</p>
+<dd class="field-odd"><p><strong>self.series</strong> – stored time series</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>stored time series</p>
+<dd class="field-even"><p>pd.Series of floats with datetime index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetTimeStep">
+<span class="sig-name descname"><span class="pre">GetTimeStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetTimeStep" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the time step in the stored time series.</p>
+<p>In case of multiple occuring time steps, the most frequent one is returend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>time_diff_ns</strong> – Most frequent time difference in the series index in nanoseconds</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.GetTrend">
+<span class="sig-name descname"><span class="pre">GetTrend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.GetTrend" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the trend of the stored time series after CalculateMSTL() has been called.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self.trend</strong> – stored time series trend</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.Series of floats with datetime index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.InterpretPointScore">
+<span class="sig-name descname"><span class="pre">InterpretPointScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.InterpretPointScore" title="Link to this definition">¶</a></dt>
+<dd><p>Interprets the outlier scores of the set of detectors stored detectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scores</strong> (<em>pd.Dataframe</em>) – Has to contain exactly one row.
+Column names are ‘D_1’, ‘D_2’, … labelling the detectors w.r.t. to the detector list.
+Values are the return values of those detectors.</p></li>
+<li><p><strong>previous_outliers</strong> (<em>list</em><em> of </em><em>int</em>) – 0 or 1 encoding of whether the previous points were outliers.
+End of list is neighboring the currently tested point that has to be an outlier.
+If empty, no cluster testing is performed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>isOutlier</strong> (<em>bool</em>) – Is the last point an outlier?</p></li>
+<li><p><strong>max_level</strong> (<em>float</em>) – overall anomaly score</p></li>
+<li><p><strong>message_detail</strong> (<em>list</em>) – List of strings containing supplementary information about the anomaly in case isOutlier == True</p></li>
+<li><p><strong>detector_responses</strong> (<em>json</em>) – Json containing the detailed detector parameters and responses</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.IsOutlierCluster">
+<span class="sig-name descname"><span class="pre">IsOutlierCluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_outliers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_density_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.IsOutlierCluster" title="Link to this definition">¶</a></dt>
+<dd><p>Check whether a given</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>previous_outliers</strong> (<em>list</em><em> of </em><em>int</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) – 0 or 1 encoding of whether the previous points were outliers. End of list is neighboring the currently tested point that has to be an outlier.</p></li>
+<li><p><strong>dropoff</strong> (<em>float</em>) – exponential dampening factor. outliers with distance i away from the currently tested point contribute exponentially less to the overall score as += np.exp( - i * dropoff)</p></li>
+<li><p><strong>cluster_density_threshold</strong> (<em>float</em>) – returns true if the summed conributions of all previous outliers in the list are at least this value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>answer</strong> – True if there is an outlier cluster, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.IsSeasonalitySignificant">
+<span class="sig-name descname"><span class="pre">IsSeasonalitySignificant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_R2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'multiplicative'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.IsSeasonalitySignificant" title="Link to this definition">¶</a></dt>
+<dd><p>Checks whether a given seasonality is significanlty present in the stores seriess.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>period</strong> (<em>int</em>) – Length of the period tested for w.r.t. time series steps</p></li>
+<li><p><strong>average_period</strong> (<em>int</em>) – Averaging period passed to pp_season_subtract. Seasonality is smoothed up this scale, i.e. neglected below the scale.</p></li>
+<li><p><strong>threshold_R2</strong> (<em>float</em>) – Threshold of the R_square statistic above which seasonality is significant (return True)</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – Type of the seasonality. Either ‘multiplicative’ or ‘additive’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – Is the seasonality significant (yes = True / no = False)?</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.LastOutlierScore">
+<span class="sig-name descname"><span class="pre">LastOutlierScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.LastOutlierScore" title="Link to this definition">¶</a></dt>
+<dd><p>Short hand call of WindowOutlierScore() that takes all of the stored series (or a window) except the last point as training data and check the last point for being an outlier. No checking for outlier clustering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>window</strong> (<em>list</em><em> of </em><em>datetime objects matching parts</em><em> of </em><em>the stored series' index</em>) – if not set to None, training + test is taken from this window instead of the whole stored series.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.PRE">
+<span class="sig-name descname"><span class="pre">PRE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.PRE" title="Link to this definition">¶</a></dt>
+<dd><p>Previous value comparison detector</p>
+<p>Computes a histogram of the previously seen (training) data and evalutes the test data based on whether it has been seen before, is within the previously seen range, or significanlty lies outside the previously seen range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Number of bins used in constructing the histogram</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>result</strong> –</p>
+<dl>
+<dt>Outlier score.</dt><dd><p>Smaller than 1: Value was seen before (is within a histogram bin) and the probability of the bin is 1 - result.</p>
+<p>Equal to 1: The value was not seen before (is not within a non-zero histogram bin), but falls within the range (min to max) of previously seen values.</p>
+<p>Larger than 1: The value has not been seen before and differs result * 100% from the previously seen range (max - min)</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.PrintDetectors">
+<span class="sig-name descname"><span class="pre">PrintDetectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.PrintDetectors" title="Link to this definition">¶</a></dt>
+<dd><p>Prints all detectors the standard output stream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.STD">
+<span class="sig-name descname"><span class="pre">STD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.STD" title="Link to this definition">¶</a></dt>
+<dd><p>Standard deviation detector</p>
+<p>Computes mean and standard deviation of training values. Outlier score is the number of standard deviations a data point is away from the training mean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Relative number of standard deviations that enters the score. Should be set to 1 unless the ramifications of another value are understood and handled properly.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – Outlier score. Number of training standard deviations a test data point deviates from the training mean.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.SeasonalityR2">
+<span class="sig-name descname"><span class="pre">SeasonalityR2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'multiplicative'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.SeasonalityR2" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the R_square statistic of the improvement a given seasonality yields in modelling the stored series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>period</strong> (<em>int</em>) – Length of the period tested for w.r.t. time series steps</p></li>
+<li><p><strong>average_period</strong> (<em>int</em>) – Averaging period passed to pp_season_subtract. Seasonality is smoothed up this scale, i.e. neglected below the scale.</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – Type of the seasonality. Either ‘multiplicative’ or ‘additive’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>R2</strong> – R2 statistic of the seasonality model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.SetStandardDetectors">
+<span class="sig-name descname"><span class="pre">SetStandardDetectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.SetStandardDetectors" title="Link to this definition">¶</a></dt>
+<dd><p>Selects a set of standard detectors applicable to generic time series. Better call AutomaticallySelectDetectors() instead for detectors customised for the stored time series.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.WindowOutlierScore">
+<span class="sig-name descname"><span class="pre">WindowOutlierScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">training</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.WindowOutlierScore" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the outlier scores given a training and test window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>training</strong> (<em>list</em><em> of </em><em>datetime indices</em>) – Datetime indices of a subset of the time series to be used for training the detectors.</p></li>
+<li><p><strong>test</strong> (<em>list</em><em> of </em><em>datetime indices</em>) – Datetime indices of a subset of the time series to be used for calculating the outlier scores.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – Dataframe containing as column names the detectors (‘D_1’, ‘D_2’, …) and as row indices the datetime indices of the test list.
+Values are the outlier scores of the detectors.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_ARIMA_subtract">
+<span class="sig-name descname"><span class="pre">pp_ARIMA_subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_ARIMA_subtract" title="Link to this definition">¶</a></dt>
+<dd><p>Subtracting ARIMA</p>
+<p>Subtracts a specified or estimated ARIMA model from the time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Peroid over which the seasonality is computed.</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>Seasonality is smoothed up this scale, i.e. neglected below the scale.</p>
+</dd>
+<dt>args[2] = str</dt><dd><p>Seasonality type, either ‘multiplicative’ or ‘additive. Time series values need to be &gt;0 for multiplicative.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_average">
+<span class="sig-name descname"><span class="pre">pp_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_average" title="Link to this definition">¶</a></dt>
+<dd><p>Rolling average</p>
+<p>Performs a rolling average on the series over a window of size args[0] with right boundary at the current point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size for averaging w.r.t. time series steps</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing (here due to boundary effects of the rolling average)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_difference">
+<span class="sig-name descname"><span class="pre">pp_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_difference" title="Link to this definition">¶</a></dt>
+<dd><p>Differencing</p>
+<p>Differences the time series with a specified n_shift. output = (1 - BACKSHIFT^n_shift) input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = n_shift.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_difference_until_stationary">
+<span class="sig-name descname"><span class="pre">pp_difference_until_stationary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0.05]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_difference_until_stationary" title="Link to this definition">¶</a></dt>
+<dd><p>Difference time series until stationary</p>
+<p>Skips a number of time steps from the beginning of the series via adding its argument to the skip counter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>&gt;0 Difference at most args[0]
+=0 difference until stationary, arbitrarily many times</p>
+</dd>
+<dt>args[1]<span class="classifier">float</span></dt><dd><p>critical ADF p-value under which stationarity is concluded</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+<li><p><strong>counter</strong> (<em>number of differentiations performed</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_fillna_linear">
+<span class="sig-name descname"><span class="pre">pp_fillna_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_fillna_linear" title="Link to this definition">¶</a></dt>
+<dd><p>Linear imputation of missing values</p>
+<p>Fills missing values via Pandas interpolate with linear approximations between available points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Maximal subsequent missing values that are imputed. If args=[] or not specified, this is taken as the series length.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_get_resid">
+<span class="sig-name descname"><span class="pre">pp_get_resid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_get_resid" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Residual</p>
+<p>Returns the MSTL residual computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_get_trend">
+<span class="sig-name descname"><span class="pre">pp_get_trend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_get_trend" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Trend</p>
+<p>Returns the MSTL trend computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_get_trend_plus_resid">
+<span class="sig-name descname"><span class="pre">pp_get_trend_plus_resid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_get_trend_plus_resid" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Residual + Trend</p>
+<p>Returns the MSTL residual + trend computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_median">
+<span class="sig-name descname"><span class="pre">pp_median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_median" title="Link to this definition">¶</a></dt>
+<dd><p>Median</p>
+<p>Substitutes time series points by the median over a window of size args[0] with right boundary at the current point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_power">
+<span class="sig-name descname"><span class="pre">pp_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_power" title="Link to this definition">¶</a></dt>
+<dd><p>Raise to power</p>
+<p>Computes a power of the absolute value of the time series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = power</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_restrict_data_to">
+<span class="sig-name descname"><span class="pre">pp_restrict_data_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_restrict_data_to" title="Link to this definition">¶</a></dt>
+<dd><p>Restricts series to later points</p>
+<p>Skips a number of time steps from the beginning so that a total window of args[0] + args[1] at the end of the series is kept</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>size of training window to be kept</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>size of test window to be kept</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_season_subtract">
+<span class="sig-name descname"><span class="pre">pp_season_subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_season_subtract" title="Link to this definition">¶</a></dt>
+<dd><p>Subtracting seasonality</p>
+<p>Subtracts a specified seasonality from the time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Peroid over which the seasonality is computed.</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>Seasonality is smoothed up this scale, i.e. neglected below the scale.</p>
+</dd>
+<dt>args[2] = str</dt><dd><p>Seasonality type, either ‘multiplicative’ or ‘additive. Time series values need to be &gt;0 for multiplicative.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_skip_from_beginning">
+<span class="sig-name descname"><span class="pre">pp_skip_from_beginning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_skip_from_beginning" title="Link to this definition">¶</a></dt>
+<dd><p>Skip time steps at beginning</p>
+<p>Skips a number of time steps from the beginning of the series via adding its argument to the skip counter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Numer of time steps to be skipped</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="outlierdetection.univariate.UnivariateOutlierDetection.pp_volatility">
+<span class="sig-name descname"><span class="pre">pp_volatility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.UnivariateOutlierDetection.pp_volatility" title="Link to this definition">¶</a></dt>
+<dd><p>Volatility</p>
+<p>Substitutes time series points by a measure of their volatility.
+Subtracts a local median from the data point and then takes the absolute value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size over which median is computed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -67,13 +763,422 @@ Duplicate indices are removed, first are kept.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="outlierdetection.univariate.process_last_point">
 <span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate.</span></span><span class="sig-name descname"><span class="pre">process_last_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts_dates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.process_last_point" title="Link to this definition">¶</a></dt>
-<dd><p>Simplest one-line call, takes time series values and dates as lists.</p>
+<dd><p>One-line call for last point.</p>
+<p>Simplest one-line call, takes time series values and dates as lists.
+Training data is the whole time series except the last point.
+Outlier scores are evaluated on the last point only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>list</em><em> (or </em><em>similar object parsable by pandas</em><em>) of </em><em>floats</em>) – Values of the time series.</p></li>
+<li><p><strong>ts_dates</strong> (<em>list</em><em> (or </em><em>similar object parsable by pandas</em><em>) of </em><em>time stamps</em><em>, </em><em>need to be parsable by pd.to_datetime</em><em>(</em><em>)</em>) – Time stamps of the time series.
+Needs to have the same length as ts</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>isOutlier</strong> (<em>bool</em>) – Is the last point an outlier?</p></li>
+<li><p><strong>max_level</strong> (<em>float</em>) – overall anomaly score</p></li>
+<li><p><strong>message_detail</strong> (<em>list</em>) – List of strings containing supplementary information about the anomaly in case isOutlier == True</p></li>
+<li><p><strong>detector_responses</strong> (<em>json</em>) – Json containing the detailed detector parameters and responses</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate.process_last_point_with_window">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate.</span></span><span class="sig-name descname"><span class="pre">process_last_point_with_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts_dates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_from_beginning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate.process_last_point_with_window" title="Link to this definition">¶</a></dt>
+<dd><p>One-line call for last point including cluster analysis.</p>
+<p>Evaluteas and interprets outlier score of last point and checks whether this belongs to a cluster of outliers of window_size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>list</em><em> (or </em><em>similar object parsable by pandas</em><em>) of </em><em>floats</em>) – Values of the time series.</p></li>
+<li><p><strong>ts_dates</strong> (<em>list</em><em> (or </em><em>similar object parsable by pandas</em><em>) of </em><em>time stamps</em><em>, </em><em>need to be parsable by pd.to_datetime</em><em>(</em><em>)</em>) – Time stamps of the time series.
+Needs to have the same length as ts</p></li>
+<li><p><strong>window_size</strong> (<em>int</em>) – Size of the window (test data range) relative to the time step in the time series.</p></li>
+<li><p><strong>skip_from_beginning</strong> (<em>int</em>) – Skip this many points from the beginning of the time series before training data range starts.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>isOutlier</strong> (<em>bool</em>) – Is the last point an outlier?</p></li>
+<li><p><strong>max_level</strong> (<em>float</em>) – overall anomaly score</p></li>
+<li><p><strong>message_detail</strong> (<em>list</em>) – List of strings containing supplementary information about the anomaly in case isOutlier == True</p></li>
+<li><p><strong>detector_responses</strong> (<em>json</em>) – Json containing the detailed detector parameters and respondes</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="univariate-preprocessors-py">
 <span id="module-outlierdetection.univariate_preprocessors"></span><h2>univariate_preprocessors.py<a class="headerlink" href="#univariate-preprocessors-py" title="Link to this heading">¶</a></h2>
 <p>Contains the definition of preprocessors that can be applied to the time series data.</p>
 </section>
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_ARIMA_subtract">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_ARIMA_subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_ARIMA_subtract" title="Link to this definition">¶</a></dt>
+<dd><p>Subtracting ARIMA</p>
+<p>Subtracts a specified or estimated ARIMA model from the time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Peroid over which the seasonality is computed.</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>Seasonality is smoothed up this scale, i.e. neglected below the scale.</p>
+</dd>
+<dt>args[2] = str</dt><dd><p>Seasonality type, either ‘multiplicative’ or ‘additive. Time series values need to be &gt;0 for multiplicative.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_average">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_average" title="Link to this definition">¶</a></dt>
+<dd><p>Rolling average</p>
+<p>Performs a rolling average on the series over a window of size args[0] with right boundary at the current point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size for averaging w.r.t. time series steps</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing (here due to boundary effects of the rolling average)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_difference">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_difference" title="Link to this definition">¶</a></dt>
+<dd><p>Differencing</p>
+<p>Differences the time series with a specified n_shift. output = (1 - BACKSHIFT^n_shift) input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = n_shift.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_difference_until_stationary">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_difference_until_stationary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0.05]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_difference_until_stationary" title="Link to this definition">¶</a></dt>
+<dd><p>Difference time series until stationary</p>
+<p>Skips a number of time steps from the beginning of the series via adding its argument to the skip counter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>&gt;0 Difference at most args[0]
+=0 difference until stationary, arbitrarily many times</p>
+</dd>
+<dt>args[1]<span class="classifier">float</span></dt><dd><p>critical ADF p-value under which stationarity is concluded</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+<li><p><strong>counter</strong> (<em>number of differentiations performed</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_fillna_linear">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_fillna_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_fillna_linear" title="Link to this definition">¶</a></dt>
+<dd><p>Linear imputation of missing values</p>
+<p>Fills missing values via Pandas interpolate with linear approximations between available points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Maximal subsequent missing values that are imputed. If args=[] or not specified, this is taken as the series length.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_get_resid">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_get_resid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_get_resid" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Residual</p>
+<p>Returns the MSTL residual computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_get_trend">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_get_trend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_get_trend" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Trend</p>
+<p>Returns the MSTL trend computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_get_trend_plus_resid">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_get_trend_plus_resid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_get_trend_plus_resid" title="Link to this definition">¶</a></dt>
+<dd><p>MSTL Residual + Trend</p>
+<p>Returns the MSTL residual + trend computed with CalcualteMSTL()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series NOT USED HERE</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args ARE NOT USED HERE</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_median">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_median" title="Link to this definition">¶</a></dt>
+<dd><p>Median</p>
+<p>Substitutes time series points by the median over a window of size args[0] with right boundary at the current point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_power">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_power" title="Link to this definition">¶</a></dt>
+<dd><p>Raise to power</p>
+<p>Computes a power of the absolute value of the time series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = power</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_restrict_data_to">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_restrict_data_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_restrict_data_to" title="Link to this definition">¶</a></dt>
+<dd><p>Restricts series to later points</p>
+<p>Skips a number of time steps from the beginning so that a total window of args[0] + args[1] at the end of the series is kept</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>size of training window to be kept</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>size of test window to be kept</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_season_subtract">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_season_subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_season_subtract" title="Link to this definition">¶</a></dt>
+<dd><p>Subtracting seasonality</p>
+<p>Subtracts a specified seasonality from the time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Peroid over which the seasonality is computed.</p>
+</dd>
+<dt>args[1]<span class="classifier">int</span></dt><dd><p>Seasonality is smoothed up this scale, i.e. neglected below the scale.</p>
+</dd>
+<dt>args[2] = str</dt><dd><p>Seasonality type, either ‘multiplicative’ or ‘additive. Time series values need to be &gt;0 for multiplicative.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_skip_from_beginning">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_skip_from_beginning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_skip_from_beginning" title="Link to this definition">¶</a></dt>
+<dd><p>Skip time steps at beginning</p>
+<p>Skips a number of time steps from the beginning of the series via adding its argument to the skip counter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – <dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Numer of time steps to be skipped</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outlierdetection.univariate_preprocessors.pp_volatility">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_preprocessors.</span></span><span class="sig-name descname"><span class="pre">pp_volatility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_preprocessors.pp_volatility" title="Link to this definition">¶</a></dt>
+<dd><p>Volatility</p>
+<p>Substitutes time series points by a measure of their volatility.
+Subtracts a local median from the data point and then takes the absolute value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Time series to be processed</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – args[0] = window size over which median is computed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>processed_series</strong> (<em>pd.Series with datetime index</em>) – Processed series</p></li>
+<li><p><strong>critical_error</strong> (<em>bool</em>) – Did a critical error occur during preprocessing?</p></li>
+<li><p><strong>add_skip</strong> (<em>int</em>) – How many time steps should be skipped from the beginning of the series due to the preprocessing</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 <div class="toctree-wrapper compound">
 </div>
 </section>

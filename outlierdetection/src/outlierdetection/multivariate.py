@@ -293,7 +293,7 @@ class MultivariateOutlierDetection:
             if ac > 2 * time_diff_min and num_data * time_diff_min >= average_periods_necessary * ac:
                 average_periods.append(int(ac / time_diff_min))
                 break
-
+                
         #if stationary:
             # Standard detectors   
         self.AddDetector(['MD', [1], [], sigma_STD])
