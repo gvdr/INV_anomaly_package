@@ -45,5 +45,23 @@ pytest tests/
 pytest tests/ --cov=outlierdetection --cov-report term-missing
 
 
+
+To setup sphinx from scratch in root folder:
+mkdir docs 
+cd docs
+sphinx-quickstart 
+
+Then, in source/conf.py, add the lines
+import sys
+import os
+sys.path.insert(0, os.path.abspath('../../outlierdetection/src'))
+
+and add to the extenions list 'sphinx.ext.autodoc', e.g. 
+extensions = ['sphinx.ext.autodoc']
+
+Then, in docs/, run 
+make html
+
+
 Comments:
 - There is currently a bug (September 11) with sphinx 7.2.5, loading numpy.typing.ufunc. Downgrade to 7.2.4 fixes it. 

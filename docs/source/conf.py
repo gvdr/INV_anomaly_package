@@ -6,25 +6,25 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'INV_outlier_package'
+project = 'INV_anomaly_package'
 copyright = '2023, Norbert Bodendorfer'
 author = 'Norbert Bodendorfer'
-release = '0.1'
+release = '0.1.1'
 
-import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+import os
+sys.path.insert(0, os.path.abspath('../../outlierdetection/src'))
 
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc']
 
 templates_path = ['_templates']
 exclude_patterns = []
 
-autoclass_content = "both"
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

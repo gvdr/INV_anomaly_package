@@ -27,6 +27,7 @@ def process_last_point(ts, ts_dates, sigma_STD = 4, deviation_PRE = 0.1, periods
     Simplest one-line call, takes time series values and dates as lists.
     Training data is the whole time series except the last point. 
     Outlier scores are evaluated on the last point only. 
+    Therefore cannot detect outlier clusters. 
 
     Parameters
     ----------
@@ -120,7 +121,7 @@ def process_last_point_with_window(ts, ts_dates, window_size=10, skip_from_begin
 
 class UnivariateOutlierDetection:
     """
-    Univariate outlier detection class. 
+    Univariate outlier detection class. Contains time series and member functions to detecto outliers. 
     """
 
     # imported outlier detection methods
