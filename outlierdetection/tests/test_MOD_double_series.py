@@ -25,16 +25,16 @@ time_series = df_bare.dropna()
 #print(time_series)
 
 # Many functions below use the same t
-t = MOD.MultivariateOutlierDetection(time_series)
-
-t.ClearDetectors()
-t.AddDetector(['MD', [1], []])
-t.AddDetector(['IF', [0.05], []])
-
 
 
 def test_scores_no_nan():
 
+    time_series_changed = time_series.copy()
+
+    t = MOD.MultivariateOutlierDetection(time_series_changed)
+
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
     
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 3000, 400)    
     scores = t.WindowOutlierScore(past, future)
@@ -50,11 +50,18 @@ def test_scores_training_nans():
 
     # Test with a time series where NaNs are injected into training data 
 
+    time_series_changed = time_series.copy()
+
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 2700, 150)
 
-    time_series.iloc[100:250] = np.nan
-    time_series.iloc[500:700] = np.nan
+    time_series_changed.iloc[100:250] = np.nan
+    time_series_changed.iloc[500:700] = np.nan
+
+    t = MOD.MultivariateOutlierDetection(time_series_changed)
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
+
 
     scores = t.WindowOutlierScore(past, future)
 
@@ -72,16 +79,25 @@ def test_scores_training_nans_and_test_nans():
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 2700, 150)
 
+    time_series_changed = time_series.copy()
+
     # training nans
-    time_series.iloc[10:15] = np.nan
-    time_series.iloc[100:150] = np.nan
+    time_series_changed.iloc[10:15] = np.nan
+    time_series_changed.iloc[100:150] = np.nan
 
     # total of 52 test nans
-    time_series.iloc[2750:2800] = np.nan
-    time_series.iloc[2846] = np.nan
-    time_series.iloc[2848] = np.nan
+    time_series_changed.iloc[2750:2800] = np.nan
+    time_series_changed.iloc[2846] = np.nan
+    time_series_changed.iloc[2848] = np.nan
+
+    t = MOD.MultivariateOutlierDetection(time_series_changed)
+
+    t.SetStandardDetectors()
+
 
     scores = t.WindowOutlierScore(past, future)
+
+    print(scores)
 
     assert len(scores.index) == 150
     assert isinstance(scores, pd.DataFrame)
@@ -96,7 +112,15 @@ def test_scores_training_only_nans():
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 2700, 150)
 
-    time_series.iloc[0:2700] = np.nan
+    time_series_changed = time_series.copy()
+
+    time_series_changed.iloc[0:2700] = np.nan
+
+    t = MOD.MultivariateOutlierDetection(time_series_changed)
+
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
+
 
     scores = t.WindowOutlierScore(past, future)
 
@@ -112,7 +136,15 @@ def test_scores_test_only_nans():
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 2700, 150)
 
-    time_series.iloc[2700:] = np.nan
+    time_series_changed = time_series.copy()
+
+    time_series_changed.iloc[2700:] = np.nan
+
+    t = MOD.MultivariateOutlierDetection(time_series_changed)
+
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
+
 
     scores = t.WindowOutlierScore(past, future)
 
@@ -129,6 +161,14 @@ def test_scores_training_has_too_few_points():
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 3, 150)
 
+    
+
+    t = MOD.MultivariateOutlierDetection(time_series)
+
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
+
+
     scores = t.WindowOutlierScore(past, future)
 
     assert len(scores.index) == 150
@@ -142,6 +182,12 @@ def test_scores_test_data_empty():
     # Test with a time series where the test data labels are empty. The error that is produced here is an error of the calling function. The scoring data frame returned is empty, as it should be. 
 
     past, future = FT.MakePastFuture(pd.to_datetime('2010-01-01'), 300, 0)
+
+    t = MOD.MultivariateOutlierDetection(time_series)
+
+    t.ClearDetectors()
+    t.AutomaticallySelectDetectors()
+
 
     scores = t.WindowOutlierScore(past, future)
 

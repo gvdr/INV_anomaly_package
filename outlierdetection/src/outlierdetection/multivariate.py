@@ -6,6 +6,68 @@ import warnings
 from datetime import timedelta
 import json
 
+
+
+def process_last_point_with_window(multivariate_json, window_size=10, skip_from_beginning = 0, sigma_STD = 4, periods_necessary_for_season = 3, average_periods_necessary = 10, detector_window_length = 1, threshold_R2_seasonality = 0.05):
+    """
+    One-line call for last point including cluster analysis. 
+    
+    Evaluteas and interprets outlier score of last point and checks whether this belongs to a cluster of outliers of window_size. 
+
+    Parameters
+    ----------
+    ts : list (or similar object parsable by pandas) of floats 
+        Values of the time series. 
+    ts_dates : list (or similar object parsable by pandas) of time stamps, need to be parsable by pd.to_datetime()
+        Time stamps of the time series. 
+        Needs to have the same length as ts
+    window_size : int
+        Size of the window (test data range) relative to the time step in the time series. 
+    skip_from_beginning : int
+        Skip this many points from the beginning of the time series before training data range starts. 
+
+    Returns
+    -------
+    isOutlier : bool
+        Is the last point an outlier?
+    max_level : float 
+        overall anomaly score
+    message_detail : list
+        List of strings containing supplementary information about the anomaly in case isOutlier == True
+    detector_responses : json
+        Json containing the detailed detector parameters and respondes 
+    """
+    
+    np_data = np.array(multivariate_json['ts']).transpose()
+
+    pandas_dataframe = pd.DataFrame(index = pd.to_datetime(multivariate_json['ts_dates']), columns = multivariate_json['ts_keyword'], data = np_data)
+
+    OD = MultivariateOutlierDetection(pandas_dataframe)    
+
+    lenght_data = len(pandas_dataframe) - skip_from_beginning
+    length_past = lenght_data - window_size
+    length_future = window_size
+    past = pandas_dataframe.index[skip_from_beginning:(skip_from_beginning+length_past)]
+    future = pandas_dataframe.index[(skip_from_beginning+length_past):]
+
+    OD.AutomaticallySelectDetectors(sigma_STD = sigma_STD, periods_necessary_for_season = periods_necessary_for_season, average_periods_necessary = average_periods_necessary, detector_window_length = length_future, threshold_R2_seasonality = threshold_R2_seasonality)
+
+    # Get outlier true/false for previous points
+    scores = OD.WindowOutlierScore(past, future)
+
+    final_score = np.repeat(0, length_future - 1)
+    for k in range(length_future - 1):
+        isOutlier, _, _, _ = OD.InterpretPointScore(scores.loc[future[k], :])
+        if isOutlier:
+            final_score[k] = 1
+    #final_score = pd.Series(index=future, data=final_score)
+
+    result = OD.InterpretPointScore(scores.loc[future[-1], :], previous_outliers = final_score.tolist())
+
+    return result
+
+
+
 class MultivariateOutlierDetection:
 
     from .multivariate_IF import IF
@@ -215,7 +277,7 @@ class MultivariateOutlierDetection:
         return result
     
 
-    def AutomaticallySelectDetectors(self, sigma_STD = 4, deviation_PRE = 0.1, periods_necessary_for_season = 3, average_periods_necessary = 10, detector_window_length = 1, threshold_R2_seasonality = 0.05):
+    def AutomaticallySelectDetectors(self, sigma_STD = 4, periods_necessary_for_season = 3, average_periods_necessary = 10, detector_window_length = 1, threshold_R2_seasonality = 0.05):
         """
         Automatically selects a set of detectors fit for the stored time series.  
 
