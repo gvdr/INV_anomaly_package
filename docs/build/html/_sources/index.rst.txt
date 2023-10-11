@@ -16,6 +16,15 @@ Welcome to INV_anomaly_package's documentation!
 .. automodule:: outlierdetection.univariate_preprocessors
    :members:
 
+.. automodule:: outlierdetection.univariate_STD
+   :members:
+
+.. automodule:: outlierdetection.univariate_PRE
+   :members:
+
+.. automodule:: outlierdetection.univariate_IF
+   :members:
+
 Indices and tables
 ==================
 

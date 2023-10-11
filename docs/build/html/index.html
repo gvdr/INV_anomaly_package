@@ -1361,9 +1361,66 @@ Subtracts a local median from the data point and then takes the absolute value.<
 </section>
 </dd></dl>
 
+<dl class="py function" id="module-outlierdetection.univariate_STD">
+<dt class="sig sig-object py" id="outlierdetection.univariate_STD.STD">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_STD.</span></span><span class="sig-name descname"><span class="pre">STD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_STD.STD" title="Link to this definition">¶</a></dt>
+<dd><p>Standard deviation detector</p>
+<p>Computes mean and standard deviation of training values. Outlier score is the number of standard deviations a data point is away from the training mean.</p>
+<section id="id84">
+<h2>Parameters<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>processed_series<span class="classifier">pd.Series with datetime index</span></dt><dd><p>Time series to be processed</p>
+</dd>
+<dt>args<span class="classifier">list</span></dt><dd><dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Relative number of standard deviations that enters the score. Should be set to 1 unless the ramifications of another value are understood and handled properly.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+<section id="id85">
+<h2>Returns<a class="headerlink" href="#id85" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>result<span class="classifier">float</span></dt><dd><p>Outlier score. Number of training standard deviations a test data point deviates from the training mean.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function" id="module-outlierdetection.univariate_PRE">
+<dt class="sig sig-object py" id="outlierdetection.univariate_PRE.PRE">
+<span class="sig-prename descclassname"><span class="pre">outlierdetection.univariate_PRE.</span></span><span class="sig-name descname"><span class="pre">PRE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#outlierdetection.univariate_PRE.PRE" title="Link to this definition">¶</a></dt>
+<dd><p>Previous value comparison detector</p>
+<p>Computes a histogram of the previously seen (training) data and evalutes the test data based on whether it has been seen before, is within the previously seen range, or significanlty lies outside the previously seen range.</p>
+<section id="id86">
+<h2>Parameters<a class="headerlink" href="#id86" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>processed_series<span class="classifier">pd.Series with datetime index</span></dt><dd><p>Time series to be processed</p>
+</dd>
+<dt>args<span class="classifier">list</span></dt><dd><dl class="simple">
+<dt>args[0]<span class="classifier">int</span></dt><dd><p>Number of bins used in constructing the histogram</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+<section id="id87">
+<h2>Returns<a class="headerlink" href="#id87" title="Link to this heading">¶</a></h2>
+<dl>
+<dt>result<span class="classifier">float</span></dt><dd><dl>
+<dt>Outlier score. </dt><dd><p>Smaller than 1: Value was seen before (is within a histogram bin) and the probability of the bin is 1 - result.</p>
+<p>Equal to 1: The value was not seen before (is not within a non-zero histogram bin), but falls within the range (min to max) of previously seen values.</p>
+<p>Larger than 1: The value has not been seen before and differs result * 100% from the previously seen range (max - min)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<span id="module-outlierdetection.univariate_IF"></span><h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
