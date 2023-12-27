@@ -74,7 +74,7 @@ def process_ts():
 # /reload reload the library
 @app.route('/reload')
 def reload():
-    importlib.reload(UOD)
+    importlib.reload(outlierdetection)
     return "outlierdetection reloaded"
 
 if __name__ == '__main__':
